@@ -1,0 +1,29 @@
+# Dockerfile for AF_XDP High-Performance Networking Lab - NexusFlow Phase 2 MVP Deliverable
+
+FROM golang:1.22-alpine AS builder  
+WORKDIR /app  
+
+COPY go.mod . 
+RUN go mod download  
+COPY cmd/*.go ./  
+
+ARG TARGETOS ARCH  
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$ARCH go build -o afxdp-packet-handler
+
+# Final image with minimal dependencies
+FROM alpine:latest
+LABEL maintainer="NexusFlow High-Performance Networking Team <perf@nexxusflow.dev>"
+
+WORKDIR /app
+
+USER app 
+RUN addgroup -S app && adduser -S app -G app  
+
+COPY --from=builder /app/afxdp-packet-handler ./afxdp-packet-handler 
+
+EXPOSE 8082
+HEALTHCHECK --interval=30s --timeout=10s \ 
+    CMD curl -f http://localhost:8082/ping || exit 1
+
+CMD ["./afxdp-packet-handler"]  
+# Auto-cleanup hook ready via signal trap in entrypoint script  

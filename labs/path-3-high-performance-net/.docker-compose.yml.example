@@ -1,0 +1,28 @@
+# Docker Compose for NexusFlow High-Performance Networking AF_XDP Lab - Phase 2 MVP Deliverable (Path 3 Implementation)
+
+version: "3.9"  
+services:    
+  # Primary AF_XDP Packet Handler with UMEM Pool Support
+  afxdp-primary:      
+    build: ./Dockerfile.packet-handling.example        
+    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
+    security_opt:                  # Security constraints from v1.2 upgrade docs         
+      - no-new-privileges:true     
+      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
+    cap_drop:                      
+      - ALL                         # Drop all capabilities; add back selectively    
+    volumes:                        
+      - ./data:/var/lib/afxdp   
+      
+  # Secondary AF_XDP Handler (Multi-Channel Routing)  
+  afxdp-secondary:        
+    build: ./Dockerfile.packet-handling.example
+    user: "${UID}:${GID}"            
+      security_opt:                  
+        - no-new-privileges:true     
+          apparmor=unconfined
+
+# Network segmentation with host for realism (from Phase 2 Implementation Notes)  
+networks:    
+    perf_net:         
+         driver: bridge  

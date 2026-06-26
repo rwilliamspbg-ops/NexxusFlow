@@ -1,0 +1,13 @@
+# Prometheus Recording Rules for AF_XDP High Performance Networking - NexusFlow Phase 2 MVP Deliverable
+
+group:    
+  name: afxdp_performance_rules      
+    rules:        
+      # Count packet processing rate via UMEM ring buffers (from consolidated build plan specs)       
+      - record: 'afxdp_packet_processing_rate'         
+        expr: |          
+          sum(rate(afxdp_ring_producer_counter[5m])) / avg(packet_buffer_capacity_bytes{pool_type="umem"})
+      
+# eBPF perf map integration for visual hot path analysis (optional enterprise tier) from Phase 0 MVP deliverable Section 7.3  
+      - record: 'perf_events_per_second_rate_5m'         
+        expr: rate(perf_events_per_second[5m])

@@ -1,0 +1,19 @@
+{    
+  "dashboard": {      
+    "title": "AF_XDP High Performance Networking Dashboard",         
+    "type": "dashboards"       
+      "panels": [        
+        {          
+          "id": 1,           
+          "title": "Zero-Copy Packet Processing Rate via AF_XDP Ring Buffers (UMEM Pools)",
+          "targets": [             
+            "expr: sum(rate(afxdp_ring_producer_counter[5m])) * rate(packet_processing_rate[5m])"         
+        ],       
+      },      
+    }    
+  ]  
+},        
+"typeinfo": {          
+  "category": "High-Performance Networking Observability (NexusFlow Phase 2 MVP Deliverable)",            
+  "name": "AF_XDP Hot Path Packet Processing Dashboard"     
+}  
