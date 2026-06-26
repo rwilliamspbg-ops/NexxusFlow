@@ -1,0 +1,27 @@
+# Prometheus Recording Rules for JWT Auth Stack Metrics - NexusFlow Observability Integration (v1.2 Upgrade Doc)
+
+group:    
+  name: jwt_auth_rules      
+    rules:        
+      - record: 'jwt_auth_requests_total'         
+        expr: |          
+          # Count authentication requests (zero-copy counters via prometheus crate integration from Phase 0 MVP deliverable)           
+          rate(http_requests_total[5m])
+      
+      - record: 'nexusflow_simple_mode_active'       
+        expr: label_replace(jwt_auth_requests_total, "mode", "", "simpleModeHint", "(.*)")
+
+# Subsystem-level latency breakdown per upgrade docs v1.2 Phase 0 plan  
+group:    
+  name: subsystem_latency_rules      
+    rules:        
+      - record: 'afxdp_ring_producer_counter_rate_5m'         
+        expr: rate(afxdp_ring_producer_counter[5m])
+      
+      # eBPF perf map integration for visual hot path analysis (optional enterprise tier)
+# Integrate Grafana Loki + eBPF Perf Map Integration from upgrade docs v1.2  
+group:    
+  name: ebpf_perf_map_rules     
+    rules:        
+      - record: 'perf_map_export_rate_5m'         
+        expr: rate(perf_events_per_second[5m])

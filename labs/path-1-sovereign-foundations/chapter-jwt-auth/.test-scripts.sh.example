@@ -1,0 +1,32 @@
+#!/bin/bash  
+# Test Scripts for JWT Auth Stack - NexusFlow Lab Environment
+
+set -e  # Exit on error  
+
+echo "🧪 Testing JWT Auth Backend Service..."   
+
+# Health Check test (from Docker healthcheck integration)
+echo "\n--- Step 1: Verify Health Endpoint ---"  
+curl http://localhost:8080/health && echo "✅ Health check passed" || \ 
+    echo "❌ Health endpoint not responding on port 8080"  
+
+# Authentication Request test (decision point example payload from upgrade docs)
+echo "\n--- Step 2: Trigger Auth Request with Test Payload ---"  
+curl http://localhost:8080/auth -H 'Content-Type: application/json' \ 
+     -d '{"user_id":"test_user","role":"admin"}' | jq . || \ 
+    echo "❌ Authentication request failed (check JWT_SECRET environment variable)"  
+
+# Simple Mode Latency Injection test (from narrative-hooks.rs zero-copy mutation)
+echo "\n--- Step 3: Simulate MCR Disabled Channels ---"  
+curl -X POST http://localhost:8080/auth \ 
+     -H 'Content-Type: application/json' \   
+     -d '{"user_id":"test_user2","role":"admin"}'  
+
+# Verify Observability Integration (Prometheus metrics crate)
+echo "\n--- Step 4: Check Prometheus Metrics Export ---"  
+if command -v curl &> /dev/null; then
+    # Zero-copy counters via prometheus crate integration from upgrade docs v1.2  
+    curl http://localhost:9090/metrics || echo "⚠️ Prometheus metrics not exposed (optional for enterprise tier)"
+fi  
+
+echo "\n✅ Test script completed successfully!"

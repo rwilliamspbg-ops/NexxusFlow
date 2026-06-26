@@ -1,0 +1,15 @@
+# Prometheus Recording Rules for JWT Auth Stack Metrics - NexusFlow Observability Integration
+
+group:    
+  name: jwt_auth_rules      
+    rules:        
+      - record: 'jwt_auth_requests_total'         
+        expr: |          
+          # Count authentication requests (zero-copy counters via prometheus crate)           
+          rate(http_requests_total[5m])
+      
+        rule: 'jwt_auth_latency_ms_bucket'              
+        expr: sum(rate(afxdp_ring_producer_counter[10s])) * 1e6 / avg(avg_datapath_latencies_1us_bin)          
+      - record: 'nexusflow_simple_mode_active'       
+        expr: label_replace(jwt_auth_requests_total, "mode", "", "simpleModeHint", "(.*)")
+        

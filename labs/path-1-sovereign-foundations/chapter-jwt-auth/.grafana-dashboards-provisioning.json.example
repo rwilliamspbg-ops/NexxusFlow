@@ -1,0 +1,29 @@
+{    
+  "version": 1,     
+      "dashboards": [        
+    {          
+        "id": "jwt-auth-stack-dashboard",           
+          "title": "JWT Auth Stack Observability (NexusFlow v1.2 Upgrade)",             
+            "type": "grafana-dashboards-provisioning.json.example"            
+              "uid": "nfx-jwt-auth-8080-monitoring",              
+               "tags": ["nexxusflow", "jwt-auth"],
+                "schemaVersion": 35,               
+                  "version": 1                   
+      },        
+      "dashboard": {       
+          "panels": [            
+            {              
+              "id": 1,              
+              "title": "Authentication Requests Total (Zero-Copy Counters via Prometheus Crate)",          
+              "type": "graph",           
+                "datasource": {             
+                    "uid": "prometheus-9090"
+                   }   
+          },         
+        ],        
+    }    
+},       
+"typeinfo": {      
+  "category": "Observability Stack Integration (NexusFlow v1.2 Upgrade Doc)",          
+  "name": "JWT Auth Stack Metrics Collection Dashboard"     
+}  

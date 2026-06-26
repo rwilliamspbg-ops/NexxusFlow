@@ -1,0 +1,23 @@
+# Grafana Provisioning Configuration for JWT Auth Stack Observability - NexusFlow (v1.2 Upgrade Doc Phase 0 MVP)
+
+apiVersion: 1  
+
+datasources:      
+- name: Prometheus       
+    type: prometheus        
+      url: http://prometheus.nexusflow.dev    
+        access: proxy
+         isDefault: true   
+           editable: false  
+         
+      uid: prometheus-jwt-auth-stack    
+
+dashboards:          
+- id: jwt-auth-stack-dashboard           
+  orgId: 1     
+    name: JWT Auth Stack Observability (NexusFlow v1.2 Upgrade)      
+     type: grafana-dashboards
+       version: 35  
+        schemaVersion: 15      
+          dashboard:       
+            "nfx-jwt-auth-8080-monitoring"  
