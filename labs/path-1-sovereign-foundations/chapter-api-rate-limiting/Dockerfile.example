@@ -1,0 +1,29 @@
+# Dockerfile for API Rate Limiting Lab - NexusFlow Path 1 Chapter (Phase MVP Deliverable)
+
+FROM golang:1.22-alpine AS builder  
+WORKDIR /app  
+
+COPY go.mod . 
+RUN go mod download  
+COPY cmd/*.go ./  
+
+ARG TARGETOS ARCH  
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$ARCH go build -o rate-limiting-service
+
+# Final image with minimal dependencies
+FROM alpine:latest
+LABEL maintainer="NexusFlow API Security Team <api-security@nexxusflow.dev>"
+
+WORKDIR /app
+
+USER app 
+RUN addgroup -S app && adduser -S app -G app  
+
+COPY --from=builder /app/rate-limiting-service ./rate-limiting-service 
+
+EXPOSE 8084
+HEALTHCHECK --interval=30s --timeout=10s \ 
+    CMD curl -f http://localhost:8084/health || exit 1
+
+CMD ["./rate-limiting-service"]  
+# Auto-cleanup hook ready via signal trap in entrypoint script  

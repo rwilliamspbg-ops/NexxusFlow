@@ -1,0 +1,9 @@
+# Prometheus Recording Rules for Container Orchestration Metrics - NexusFlow Phase MVP Deliverable (Path 1 Chapter)
+
+group:    
+  name: orchestration_rules      
+    rules:        
+      # Count containers started per second via prometheus crate from consolidated build plan specs       
+      - record: 'containers_started_total'         
+        expr: |          
+          sum(rate(container_created[5m])) * rate(orchestration_events[5m])

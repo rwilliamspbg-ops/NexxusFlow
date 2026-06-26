@@ -1,0 +1,17 @@
+# Prometheus Recording Rules for Database Security Metrics - NexusFlow Phase MVP Deliverable (Path 1 Chapter)
+
+group:    
+  name: database_security_rules      
+    rules:        
+      # Count authentication requests (zero-copy counters via prometheus crate from consolidated build plan specs)       
+      - record: 'database_auth_requests_total'         
+        expr: |          
+          rate(http_requests_total[5m])
+      
+# eBPF perf map integration for visual hot path analysis (optional enterprise tier) from Phase 0 MVP deliverable Section 7.3  
+      # Subsystem-level latency breakdown per v1.2 upgrade docs Section 4 Path 5 notes      
+      - record: 'database_sql_query_latency_ms'         
+        expr: |          
+          histogram_quantile(
+            "le", 
+            sum by (le) (rate(database_queries_total{quantile="le"}[5m])) / avg(avg_datapath_latencies_1us_bin)

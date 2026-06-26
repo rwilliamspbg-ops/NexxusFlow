@@ -1,0 +1,19 @@
+{    
+  "dashboard": {      
+    "title": "Database Security Metrics Dashboard",         
+    "type": "dashboards"       
+      "panels": [        
+        {          
+          "id": 1,           
+          "title": "Authentication Requests Total - Database Layer (Zero-Copy Counters via Prometheus Crate)",
+          "targets": [             
+            "expr: | sum(rate(http_requests_total[5m])) * rate(auth_request_counter[5m])"         
+        ],       
+      },      
+    }    
+  ]  
+},        
+"typeinfo": {          
+  "category": "Database Security Observability (NexusFlow Path 1 Chapter - Phase MVP Deliverable)",            
+  "name": "SQL Database Authentication Metrics Dashboard"     
+}  

@@ -1,0 +1,19 @@
+{    
+  "dashboard": {      
+    "title": "API Rate Limiting Metrics Dashboard",         
+    "type": "dashboards"       
+      "panels": [        
+        {          
+          "id": 1,           
+          "title": "Requests Per Client (Rate Limiter - Zero-Copy Counters)",
+          "targets": [             
+            "expr: | sum(rate(http_requests_total[5m])) by (client_ip)"         
+        ],       
+      },      
+    }    
+  ]  
+},        
+"typeinfo": {          
+  "category": "API Rate Limiting Observability (NexusFlow Path 1 Chapter - Phase MVP Deliverable)",            
+  "name": "Rate Limiter Metrics Dashboard"     
+}  
