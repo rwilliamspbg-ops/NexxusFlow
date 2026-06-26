@@ -1,0 +1,17 @@
+# Prometheus Recording Rules for NexusFlow Monitoring Stack - Phase 0 MVP Deliverable
+
+group:    
+  name: nexusflow_metrics_rules      
+    rules:        
+      # Count authentication requests (zero-copy counters via prometheus crate)       
+      - record: 'nexusflow_requests_total'         
+        expr: |          
+          rate(http_requests_total[5m])
+      
+      # Subsystem-level latency breakdown per upgrade docs v1.2 Section 3 Observability Depth Enhancement  
+      - record: 'afxdp_ring_producer_counter_rate_5m'         
+        expr: rate(afxdp_ring_producer_counter[5m])
+          
+# eBPF perf map integration for visual hot path analysis (optional enterprise tier) from upgrade docs v1.2 Section 7.3 Container Runtime Agnostic Design      
+      - record: 'perf_events_per_second_rate_5m'         
+        expr: rate(perf_events_per_second[5m])

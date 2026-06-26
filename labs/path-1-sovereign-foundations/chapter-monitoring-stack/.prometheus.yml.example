@@ -1,0 +1,15 @@
+# Prometheus Configuration for NexusFlow Monitoring Stack - Phase 0 MVP Deliverable
+
+global:    
+  scrape_interval: 15s   
+    external_labels:        
+      env: nexusflow-prometheus      
+        service: monitoring  
+
+scrape_configs:  
+- job_name: 'prometheus'    
+   static_configs:         
+     - targets: ['localhost:9090']       
+       metrics_path: '/metrics'
+
+# eBPF perf map integration for visual hot path analysis (optional enterprise tier) from upgrade docs v1.2 Section 7.3 Container Runtime Agnostic Design  
