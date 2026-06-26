@@ -1,30 +1,42 @@
-# Dockerfile for JWT Auth Backend Service - NexusFlow Lab Prototype
+# Dockerfile for JWT Auth Backend Service — NexusFlow Lab
 
-FROM golang:1.22-alpine AS builder  
-WORKDIR /app  
-COPY go.mod . 
-RUN go mod download  
-COPY cmd/*.go ./  
-
-ARG TARGETOS ARCH  
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$ARCH go build -o jwt-auth-service 
-
-# Final image with minimal dependencies
-FROM alpine:latest
-LABEL maintainer="NexusFlow Team <team@nexxusflow.dev>"
+# ── Build stage ───────────────────────────────────────────────────────────────
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
-# User namespace isolation via non-root user  
-RUN addgroup -S app && adduser -S app -G app  
+# Download deps first so this layer is cached separately from source changes
+COPY go.mod go.sum* ./
+RUN go mod download
 
-COPY --from=builder /app/jwt-auth-service ./jwt-auth-service  
+# Copy all Go source files from the lab directory root
+COPY *.go ./
 
-USER app 
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    go build -ldflags="-s -w" -o jwt-auth-service .
+
+# ── Runtime stage ─────────────────────────────────────────────────────────────
+FROM alpine:3.19
+
+LABEL maintainer="NexusFlow Team <team@nexxusflow.dev>"
+
+# Install wget for healthcheck (curl is not always available in alpine)
+RUN apk add --no-cache wget
+
+WORKDIR /app
+
+# Non-root user for security hardening
+RUN addgroup -S app && adduser -S app -G app
+
+COPY --from=builder /app/jwt-auth-service ./jwt-auth-service
+
+USER app
 
 EXPOSE 8080
-HEALTHCHECK --interval=30s --timeout=10s \ 
-    CMD curl -f http://localhost:8080/health || exit 1
 
-CMD ["./jwt-auth-service"]  
-# Auto-cleanup hook ready via signal trap in entrypoint script  
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget -qO- http://localhost:8080/health || exit 1
+
+CMD ["./jwt-auth-service"]

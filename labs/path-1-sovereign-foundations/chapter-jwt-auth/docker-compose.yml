@@ -1,34 +1,48 @@
-# JWT Auth Stack Deployment - Docker Compose for NexusFlow Lab Prototype
+# JWT Auth Stack Deployment — Docker Compose for NexusFlow Lab
 
-version: "3.9"  
-services:    
-  # Backend Service with User Namespace Isolation (Security Hardening per v1.2 docs)  
-  jwt-auth-backend:      
-    build: ./Dockerfile.backend        
-    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
-    security_opt:                  # Security constraints from upgrade doc         
-      - no-new-privileges:true     
-      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
-    cap_drop:                      
-      - ALL                         # Drop all capabilities; add back selectively    
-    volumes:                        
-      - ./data:/var/lib/app-data   # Local data isolation per user namespace      
-    environment:                    
-      - JWT_SECRET=${JWT_SECRET:-"dev-secret-change-in-production"}   
+services:
+  # Backend Service with user namespace isolation and capability hardening
+  jwt-auth-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8080:8080"
+    user: "${UID:-1000}:${GID:-1000}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      - ./data:/var/lib/app-data
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
       - PORT=8080
-    depends_on:                     
-      - jwt-auth-db         
+    depends_on:
+      jwt-auth-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
-  # PostgreSQL Database for Session Storage  
-  jwt-auth-db:          
+  # PostgreSQL for session / user storage
+  jwt-auth-db:
     image: postgres:15-alpine
-    environment:              
-      - POSTGRES_USER=labuser  
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"dev-password"}      
-    volumes:                  
-      - db-data:/var/lib/postgresql/data  
+    environment:
+      - POSTGRES_USER=labuser
+      - POSTGRES_DB=labdb
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dev-password}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labuser -d labdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-# Volume driver for local data isolation (per-user namespace)    
-volumes:    
-  db-data:            
-    name: jwt-auth-db-data    
+volumes:
+  db-data:
+    name: jwt-auth-db-data

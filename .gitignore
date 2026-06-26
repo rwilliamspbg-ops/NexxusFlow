@@ -1,18 +1,57 @@
-# Rust  
-/target/  
-**/*.rs.bk  
-*.pdb  
+# NexxusFlow / NexusFlow — .gitignore
+# ─────────────────────────────────────────────────────────────────
+# Rust
+/target/
+**/*.rs.bk
+*.pdb
+# Only commit Cargo.lock for binaries (not libraries)
+# Cargo.lock
 
-# Cargo (optional)    
-Cargo.lock  # Only commit initial lockfile
+# Node / npm
+node_modules/
+dist/
+build/
+.next/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-[WINDOWS]      
-.vscode/* 
-!.vscode/extensions.json    
-.idea/**/.***   
-.project 
-.settings  
-.buildlog*     
-.clangd*/.*.cache
-.gitignore~
+# Environment secrets — NEVER commit real .env files
+.env
+.env.local
+.env.*.local
+# Keep example templates
+!.env.example
+
+# OS artefacts
 .DS_Store
+Thumbs.db
+
+# Editors / IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*.swo
+*~
+
+# Docker
+.docker/
+
+# Logs
+*.log
+logs/
+
+# Coverage / test artefacts
+coverage/
+lcov.info
+tarpaulin-report.html
+
+# Compiled Go binaries
+*.exe
+jwt-auth-service

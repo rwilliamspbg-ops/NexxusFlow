@@ -1,0 +1,28 @@
+# Line-ending normalization for cross-platform development
+* text=auto
+
+# Rust source
+*.rs text eol=lf
+
+# Go source
+*.go text eol=lf
+
+# TypeScript / JavaScript
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+
+# Shell / YAML / TOML / Makefile
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+Makefile text eol=lf
+
+# Dockerfile
+Dockerfile* text eol=lf
+
+# Binaries
+*.png binary
+*.jpg binary
+*.pdf binary

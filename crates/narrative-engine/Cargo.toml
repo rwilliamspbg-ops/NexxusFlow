@@ -1,16 +1,16 @@
-[package]  
+[package]
 name = "narrative-engine"
-version.workspace = true 
-authors.workspace = true  
-edition.workspace = true  
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
 
 description = "XState-like branching logic + state mutation API for narrative-driven lab scenarios"
 
-[[bin]]   
-name = "lab_state_mutator"  
-path = "src/bin/packet_handler.rs"  # Example binary, can be renamed to better fit
+[[bin]]
+name = "lab_state_mutator"
+path = "src/bin/lab_state_mutator.rs"
 
 [dependencies]
-workspace.dependencies.async-std = { workspace = true }    
-serde.workspace = true 
-serde_json.workspace = true  
+async-std = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

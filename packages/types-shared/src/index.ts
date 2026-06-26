@@ -1,9 +1,6 @@
-// packages/types-shared/src/index.ts  
-export * from "./lab-chapter";    
-export { labChapterSchema, LabChapter } from "./lab-chapter"; 
+// packages/types-shared/src/index.ts
+// Central re-export barrel — each module exports its own symbols once.
 
-export * from "./collaboration";       
-export { collaborativeLabSchema, resourceQuotaSchema } from "./collaboration";  
-
-export * from "./certification";        
-export { verifiable_credential_schema } from "./certification";  
+export * from "./lab-chapter";
+export * from "./collaboration";
+export * from "./certification";
