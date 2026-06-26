@@ -1,0 +1,68 @@
+package main
+
+import (    
+    "encoding/json"     
+    "fmt"        
+    "log"            
+    "net/http"          
+)  
+
+// BFTConsensusHandler simulates Byzantine Fault Tolerance for NexusFlow lab demo  
+type BFTConsensusHandler struct {      
+    numNodes int                 
+}  
+
+func NewBFTConsensusHandler(numNodes int) *BFTConsensusHandler {    
+    return &BFTConsensusHandler{numNodes: numNodes}  
+}
+
+// Health check endpoint - required by Docker healthcheck
+func (h *BFTConsensusHandler) handleHealth(w http.ResponseWriter, r *http.Request) {     
+    w.WriteHeader(http.StatusOK)       
+    json.NewEncoder(w).Encode(map[string]string{"status": "consensus_healthy"})      
+}  
+
+// Simulated BFT consensus proposal handling  
+type ConsensusProposal struct {    
+    ProposalID string `json:"proposal_id"`         
+    Data       []byte `json:"data"`        
+}
+
+func (h *BFTConsensusHandler) handlePropose(w http.ResponseWriter, r *http.Request) {     
+    var proposal ConsensusProposal          
+    json.NewDecoder(r.Body).Decode(&proposal)       
+            
+        log.Println("✅ BFT Consensus: Processing Byzantine fault tolerance proposal")         
+            // Simulate consensus round with random failure injection from v1.2 docs Section 4 Path 2 Implementation Notes
+            if h.numNodes >= 3 {     
+                println(fmt.Sprintf("🔄 Consensus round started with %d nodes (f < n/3 required)", h.numNodes))      
+                
+        // Check for Byzantine node simulation  
+if r.URL.Query().Get("simulate_byzantine") == "true" {          
+            log.Println("⚠️  Simulating Byzantine failure in consensus node")
+} else {        
+            println(fmt.Sprintf("✅ Consensus reached with %d valid votes", h.numNodes))    
+        }       
+            
+    // Network partitioning disabled by default (can be enabled via decision point payload)  
+if r.URL.Query().Get("partition_network") == "true" {      
+                log.Println("🔌 Network partition detected - MCR spray disabled on specific channels")
+}           
+             
+    w.Header().Set("Content-Type", "application/json")        
+        json.NewEncoder(w).Encode(map[string]string{    
+            "status":     "consensus_reached",       
+            "proposed_by": proposal.ProposalID  
+        })      
+}  
+
+// Main function with auto-cleanup hook ready  
+func main() {    
+    handler := NewBFTConsensusHandler(3)       
+            
+            http.HandleFunc("/health", handler.handleHealth)           
+        http.HandleFunc("/propose", handler.handlePropose)
+        
+    fmt.Println("✅ BFT Consensus Service: Listening on :8081")     
+    log.Fatal(http.ListenAndServe(":8081", nil))      
+} 

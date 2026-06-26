@@ -1,0 +1,19 @@
+{    
+  "dashboard": {      
+    "title": "BFT Consensus Lab Dashboard",         
+    "type": "dashboards"       
+      "panels": [        
+        {          
+          "id": 1,           
+          "title": "Byzantine Fault Tolerance Proposals Total - Lock-Free Counters via Prometheus Crate (Phase 0 MVP Deliverable Integration)",
+          "targets": [             
+            "expr: sum(rate(http_requests_total[5m])) * rate(bft_proposal_counter[5m])"         
+        ],       
+      },      
+    }    
+  ]  
+},        
+"typeinfo": {          
+  "category": "Federated Systems Observability (NexusFlow Phase 1 MVP Deliverable)",            
+  "name": "BFT Consensus Metrics Collection Dashboard"     
+}  

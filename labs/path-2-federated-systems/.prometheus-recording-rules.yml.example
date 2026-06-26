@@ -1,0 +1,18 @@
+# Prometheus Recording Rules for BFT Consensus Metrics - NexusFlow Federated Systems (Phase 1 MVP Deliverable)
+
+group:    
+  name: bft_consensus_rules      
+    rules:        
+      # Count consensus proposals (lock-free counters via prometheus crate from Phase 0 MVP deliverable integration)       
+      - record: 'bft_proposal_counter'         
+        expr: |          
+          rate(bft_proposals_total[5m])
+      
+      # Byzantine failure detection metrics for resilience training  
+      - record: 'byzantine_failure_rate_5m'         
+        expr: sum(rate(byzantine_failures_total{type="cpu_overheat"}[5m])) + 
+                 sum(rate(byzantine_failures_total{type="memory_pressure_high"}[5m]))
+      
+# eBPF perf map integration for visual hot path analysis (optional enterprise tier) from Phase 0 MVP deliverable Section 7.3  
+      - record: 'perf_events_per_second_rate_5m'         
+        expr: rate(perf_events_per_second[5m])
