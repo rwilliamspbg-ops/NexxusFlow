@@ -1,0 +1,18 @@
+[package]  
+name = "afxdp-lab"
+version.workspace = true 
+authors.workspace = true  
+edition.workspace = true  
+
+description = "Containerized AF_XDP demo harness with zero-copy packet processing for NexusFlow high-performance networking labs"
+
+[[bin]]   
+name = "packet_handler_bin"  
+path = "src/bin/packet_handler.rs"
+
+[dependencies]
+workspace.dependencies.afxdp = { workspace = true } 
+bytes.workspace = true 
+async-std.workspace = true    
+serde.workspace = true  
+serde_json.workspace = true

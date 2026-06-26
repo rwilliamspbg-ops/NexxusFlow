@@ -1,0 +1,60 @@
+[workspace]
+resolver = "2"
+members = [
+    # Data Plane Crates (Core Hot Path)  
+    "crates/afxdp-lab",
+
+    # Cryptographic Engine
+    "crates/crypto/src/lib.rs",  # To be added with SIMD optimizations
+    
+    # Narrative & Orchestration  
+    "crates/narrative-engine",
+    
+    # Observability Core
+    "crates/observability-core",
+
+    # Wire crate for zero-copy packet headers (To be implemented)
+    # "crates/wire",  # Add when ready
+]
+
+[workspace.package]
+version = "0.1.0"  
+authors = ["NexusFlow Team <team@nexxusflow.dev>"]  
+edition = "2024"
+license = "AGPL-3.0"  
+repository = "https://github.com/nexxusflow/nexusflow-monorepo"
+
+[workspace.dependencies]
+# AF_XDP Ring Buffer Integration (Zero-Copy Hot Path) 
+afxdp = { version = "=0.x", features = ["async"] }  # Pin specific compatible versions
+    
+# Concurrent Data Structures (Lock-Free, Crossbeam atomics)  
+crossbeam-channel = "0.5"
+crossbeam-queue = "0.3"
+
+# Async Runtime Options: tokio OR async-std (feature-gated) 
+tokio = { version = "1", features = ["full"] }
+async-std = "1"
+
+# Cryptographic Operations (Side-channel resistant AES-GCM, ChaCha20-Poly1305)  
+aes-gcm-siv = "0.10"  # Side-channel resistant mode
+chacha20poly1305 = "0.10" 
+ring = "0.17"         # For post-quantum key exchange (PQKE) examples
+
+# Zero-Copy & Memory Safety (Avoid heap allocations in hot path)  
+bytes = { version = "=1", features = ["serde"] }  # Fixed-size buffers preferred
+  
+# Serialization/Deserialization 
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bincode = "1.3"         # Zero-allocation serialization
+
+# Observability Stack (Prometheus + Grafana)  
+prometheus = "0.13"     # Metrics collection    
+hyper = { version = "=1", features = ["full"] }  # WebSocket updates to frontend
+    
+# Database (Sovereign First: SQLite default, PostgreSQL for enterprise tier) 
+sqlx = { version = "0.7", features = [
+    "runtime-tokio-rustls",
+    "sqlite"             # Default local storage, PostgreSQL optional for enterprise tier
+] }

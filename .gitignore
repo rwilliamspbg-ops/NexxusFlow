@@ -1,0 +1,18 @@
+# Rust  
+/target/  
+**/*.rs.bk  
+*.pdb  
+
+# Cargo (optional)    
+Cargo.lock  # Only commit initial lockfile
+
+[WINDOWS]      
+.vscode/* 
+!.vscode/extensions.json    
+.idea/**/.***   
+.project 
+.settings  
+.buildlog*     
+.clangd*/.*.cache
+.gitignore~
+.DS_Store

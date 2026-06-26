@@ -1,0 +1,17 @@
+[package]  
+name = "observability-core"
+version.workspace = true 
+authors.workspace = true  
+edition.workspace = true  
+
+description = "Metrics emitter, WebSocket updater for real-time dashboards and observability stack integration"
+
+[[bin]]   
+name = "metrics_emitter_bin"  
+path = "src/bin/metrics_server.rs"  # Example binary with Prometheus metrics export
+
+[dependencies]
+workspace.dependencies.async-std.workspace = true    
+prometheus.workspace = true     
+hyper.workspace = true      
+serde.workspace = true  
