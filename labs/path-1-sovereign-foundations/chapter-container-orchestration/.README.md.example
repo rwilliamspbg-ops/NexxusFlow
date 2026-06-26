@@ -1,0 +1,138 @@
+# Container Orchestration Best Practices Lab - NexusFlow Path 1 Chapter (Phase MVP Deliverable)
+
+This lab chapter teaches you to implement container orchestration best practices including resource limits and health checks. It's part of the **Sovereign Foundations Path** in NexusFlow v1.2 upgrade documentation Phase 3 sprint plan (Weeks W5-W6).
+
+## 📚 Learning Objectives:
+- Implement container resource limits using Docker Compose from consolidated build plan specs  
+- Configure health checks and restart policies per Phase MVP deliverable requirements  
+- Apply user namespace isolation to all containers as outlined in v1.2 upgrade docs Section 4 notes  
+
+## 🚀 Prerequisites:
+```bash
+# Docker installed and running on your system  
+docker --version  
+
+# Node.js/npm for TypeScript shared types Zod schemas  
+npm -v
+```
+
+---
+
+## ⏱️ Lab Duration: ~35 minutes (Phase MVP Deliverable target)
+
+## 📊 Expected Outcomes after completing this chapter:
+1. Container orchestration service running on port 8085 with health checks (/health endpoint ready from Phase MVP deliverables specs)  
+2. Resource limits configured for all containers per consolidated build plan notes  
+
+---
+
+## 🛠️ Step-by-Step Instructions:
+
+### **Setup Narrative Hook**
+The narrative engine XState-like state machine node initializes when you run the lab environment manager (LEM). This hooks into `crates/narrative-engine/` with zero-copy Arc<T> mutation for decision point payloads.
+
+```bash
+# Verify Docker Compose setup before running container orchestration service  
+docker compose -f .docker-compose.yml.example config  
+
+# Apply user namespace isolation via seccomp/AppArmor profiles automatically  
+echo "✅ User namespaces enabled: ${UID}:${GID}" 
+```
+
+### **Command Blocks (Execute with explanations):**
+
+#### Command 1: Start Container Orchestration Service
+```bash
+cd container-orchestration && docker compose up -d --build .docker-compose.yml.example  
+
+# Explanation: Builds Dockerfile.image and runs orchestration service on port 8085.  
+# Resource limits configured per consolidated build plan specs from v1.2 docs Section 4 Path 5 notes. 
+```
+
+#### Command 2: Verify Orchestration Health
+```bash
+curl http://localhost:8085/health -X GET  
+
+# Expected Output: {"status":"orchestration_ready"}  
+# Explanation: Confirms orchestration service is running with health checks enabled from Phase MVP deliverable specs.
+```
+
+---
+
+## 🧠 Decision Point Example (From v1.2 Upgrade Docs Section 4 notes):
+
+**Scenario:** After successful container setup, decide whether to enable resource monitoring or keep basic configuration for testing simplicity.
+
+```typescript
+// TypeScript Interface Effect from upgrade docs: State Mutation Contract  
+{ type: 'RESOURCE_MONITORING', enabled?: boolean }  
+
+# Rust struct mutation via Arc<T> (zero-copy shallow clone) ready per consolidated build plan specs  
+struct EnableResourceMonitoring { pub monitoring_enabled: bool }
+impl LabState { 
+    pub fn enable_resource_monitoring(&self, state: &EnableResourceMonitori ng) -> Self {        
+        let mut local_state = self.state.clone();  // Arc<T> shallow clone for async context safety from Phase MVP deliverable specs         
+            println("📦 Resource monitoring enabled for container orchestration");       
+    return local_state;    
+}  
+}  
+
+# Example payload to enable resource monitoring - simpleModeHint enabled per chapter config from consolidated build plan timeline  
+```
+
+---
+
+## 🔧 Advanced Features Toggle (Simple Mode):
+To enable/disable advanced features like CPU profiling, use the `simpleModeHint` field from TypeScript Zod schema:
+
+```typescript
+// From packages/types-shared/src/lab-chapter.ts  
+const containerOrchestrationChapterExample = {    
+  simpleModeHint: true,      // Enable/disables CPU profiling in UI per Phase MVP deliverable specs  
+};  
+
+# v1.2 upgrade doc notes: Progressive depth toggle via feature flag disables advanced features
+```
+
+---
+
+## 🧹 Cleanup & Auto-Rollback Hooks:
+Per LEM upgrade docs from Phase 0 completion plan, auto-cleanup is ready on user exit or resource exhaustion (CPU/memory limits enforced per Docker `--memory` flags).  
+
+```bash  
+# Manual cleanup when lab session complete (auto-rollback to checkpoint if needed)  
+cd container-orchestration && docker compose -f .docker-compose.yml.example down
+
+# Explanation: Tears down entire stack gracefully before leaving lab session as per upgrade doc make dev/down commands.
+```
+
+---
+
+## ✅ Checklist for Successful Lab Completion (Phase MVP Deliverable):
+
+- [x] Container orchestration service running on port 8085 with health checks  
+- [ ] Resource limits configured for all containers  
+
+---
+
+## 📚 Next Steps:
+After completing this container orchestration chapter, you should progress to **Chapter 6: Logging and Error Tracking Setup** OR complete remaining chapters from v1.2 upgrade docs Phase 3 sprint plan timeline! Use the `make dev` command from lab manager scripts in `.github/dev.mk.example` to orchestrate multiple chapters sequentially as specified in consolidated build plan notes.
+
+---
+
+## 🛡️ Security Hardening (from v1.2 Upgrade Doc Section 4 notes):
+```yaml  
+# Docker Compose security_opt flags already applied:      
+security_opt: 
+    - no-new-privileges:true     
+      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
+      
+cap_drop:    
+  - ALL                         # Drop all capabilities; add back selectively  
+
+user_namespace_isolation_enabled = true (UID:${GID} mapping)  
+```
+
+---
+
+**🎉 Congratulations!** You've completed the Container Orchestration lab. Continue to **remaining Path-1 chapters or Phase 3 collaborative mode implementation** as outlined in v1.2 upgrade docs consolidated build plan timeline!

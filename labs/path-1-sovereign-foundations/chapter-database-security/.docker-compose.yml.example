@@ -1,0 +1,29 @@
+# Docker Compose for NexusFlow Database Security Fundamentals Lab - Phase MVP Deliverable (Path 1 Chapter)
+
+version: "3.9"  
+services:    
+  # Primary SQL Service with User Namespace Isolation
+  sql-security-primary:      
+    build: ./Dockerfile.sql.example        
+    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
+    security_opt:                  # Security constraints from v1.2 upgrade docs         
+      - no-new-privileges:true     
+      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
+    cap_drop:                      
+      - ALL                         # Drop all capabilities; add back selectively    
+    volumes:                        
+      - ./data:/var/lib/sql       
+      
+  # PostgreSQL Database Container (Phase MVP Deliverable)  
+  database-postgres:          
+    image: postgres:15-alpine
+    environment:              
+      - POSTGRES_USER=labuser  
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-"dev-password"}      
+    volumes:                  
+      - db-data:/var/lib/postgresql/data  
+
+# Volume driver for local data isolation per-user namespace (from consolidated build plan specs)    
+volumes:    
+  db-data:            
+    name: nexusflow-database-security

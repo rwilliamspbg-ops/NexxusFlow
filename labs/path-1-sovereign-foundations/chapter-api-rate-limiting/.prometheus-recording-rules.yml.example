@@ -1,0 +1,9 @@
+# Prometheus Recording Rules for API Rate Limiting Metrics - NexusFlow Phase MVP Deliverable (Path 1 Chapter)
+
+group:    
+  name: rate_limit_rules      
+    rules:        
+      # Count requests per client IP (zero-copy counters via prometheus crate from consolidated build plan specs)       
+      - record: 'rate_requests_per_client'         
+        expr: |          
+          sum(rate(http_requests_total{method="/api/*"}[5m])) by (client_ip)

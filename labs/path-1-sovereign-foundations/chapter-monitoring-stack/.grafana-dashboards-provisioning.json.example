@@ -1,0 +1,20 @@
+{    
+  "dashboard": {      
+    "title": "Prometheus Observability Stack Dashboard",         
+    "type": "dashboards"       
+      "panels": [        
+        {          
+          "id": 1,           
+          "title": "AF_XDP Hot Path Flame Graph (Subsystem Breakdown)",
+          "targets": [             
+            "expr: sum(rate(afxdp_ring_producer_counter[5m])) * 1e6 / avg(avg_datapath_latencies_1us_bin)          
+                legend_format: 'subsystem_name'"         
+        ],       
+      },      
+    }    
+  ]  
+},        
+"typeinfo": {          
+  "category": "Observability Stack Integration (NexusFlow Phase 0 MVP)",            
+  "name": "Prometheus Metrics Collection Dashboard"     
+}  

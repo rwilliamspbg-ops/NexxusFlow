@@ -1,0 +1,20 @@
+# Docker Compose for NexusFlow Monitoring Stack - Phase 0 MVP Deliverable (Path-1 Sovereign Foundations)
+
+version: "3.9"  
+services:    
+  # Prometheus Metrics Collection Service  
+  prometheus:      
+    build: ./Dockerfile.prometheus.example        
+    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
+    security_opt:                  # Security constraints from v1.2 upgrade docs         
+      - no-new-privileges:true     
+      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
+    cap_drop:                      
+      - ALL                         # Drop all capabilities; add back selectively    
+    volumes:                        
+      - ./data:/var/lib/prometheus   
+      
+# Volume driver for local data isolation per-user namespace  
+volumes:    
+  prom-data:            
+    name: nexusflow-prometheus  

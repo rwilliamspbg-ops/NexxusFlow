@@ -1,0 +1,13 @@
+# Grafana Provisioning Configuration for Container Orchestration Metrics - NexusFlow Phase MVP Deliverable (Path 1 Chapter)
+
+apiVersion: 1  
+
+datasources:      
+- name: Prometheus       
+    type: prometheus        
+      url: http://prometheus.nexusflow.dev    
+        access: proxy
+         isDefault: true   
+           editable: false  
+         
+      uid: prometheus-container-orchestration    

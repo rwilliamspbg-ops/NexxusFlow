@@ -1,0 +1,19 @@
+{    
+  "dashboard": {      
+    "title": "JWT Auth Stack Dashboard",         
+    "type": "dashboards"       
+      "panels": [        
+        {          
+          "id": 1,           
+          "title": "Authentication Requests Total (5m) - Zero-Copy Counters via Prometheus Crate",
+          "targets": [             
+            "expr: | sum(rate(http_requests_total[5m])) * rate(afxdp_ring_producer_counter[5m])"         
+        ],       
+      },      
+    }    
+  ]  
+},        
+"typeinfo": {          
+  "category": "Metrics Collection Dashboard",            
+  "name": "JWT Auth Stack Observability (NexusFlow)"     
+}  

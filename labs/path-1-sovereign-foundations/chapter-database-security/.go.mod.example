@@ -1,0 +1,8 @@
+module github.com/nexxusflow/database-security/chapter
+
+// Database Security Fundamentals Dependencies for NexusFlow Phase MVP Deliverable (Path 1 Chapter)
+go 1.22  
+
+require golang.org/x/crypto v0.19.0 
+
+// Password hashing and encryption utilities from consolidated build plan specs  

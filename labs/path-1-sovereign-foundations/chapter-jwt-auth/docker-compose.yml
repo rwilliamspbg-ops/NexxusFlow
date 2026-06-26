@@ -1,0 +1,48 @@
+# JWT Auth Stack Deployment — Docker Compose for NexusFlow Lab
+
+services:
+  # Backend Service with user namespace isolation and capability hardening
+  jwt-auth-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8080:8080"
+    user: "${UID:-1000}:${GID:-1000}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    volumes:
+      - ./data:/var/lib/app-data
+    environment:
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+      - PORT=8080
+    depends_on:
+      jwt-auth-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  # PostgreSQL for session / user storage
+  jwt-auth-db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=labuser
+      - POSTGRES_DB=labdb
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dev-password}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U labuser -d labdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:
+    name: jwt-auth-db-data

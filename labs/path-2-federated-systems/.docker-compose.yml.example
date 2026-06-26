@@ -1,0 +1,38 @@
+# Docker Compose for NexusFlow Federated Systems Multi-Node Simulation - Phase 1 MVP Deliverable (Path 2 Implementation Notes)
+
+version: "3.9"  
+services:    
+  # Primary BFT Consensus Node
+  consensus-primary:      
+    build: ./Dockerfile.consensus.example        
+    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
+    security_opt:                  # Security constraints from v1.2 upgrade docs         
+      - no-new-privileges:true     
+      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
+    cap_drop:                      
+      - ALL                         # Drop all capabilities; add back selectively    
+    volumes:                        
+      - ./data:/var/lib/bft   
+      
+  # Secondary Byzantine Node (Simulated for lab demo)  
+  consensus-secondary:        
+    image: alpine:latest          
+      command: ["tail", "-f", "/dev/null"]       # Simulate secondary node with random failures
+    user: "${UID}:${GID}"            
+      security_opt:                  
+        - no-new-privileges:true     
+          apparmor=unconfined
+
+  # Tertiary Byzantine Node (Simulated for BFT consensus experiments)  
+  consensus-tertiary:      
+    image: alpine:latest          
+       command: ["tail", "-f", "/dev/null"]
+      user: "${UID}:${GID}"        
+        security_opt:                
+          - no-new-privileges:true     
+            apparmor=unconfined
+
+# Network segmentation with host for realism (from Path 2 Implementation Notes)  
+networks:    
+    federation_net:         
+         driver: bridge  

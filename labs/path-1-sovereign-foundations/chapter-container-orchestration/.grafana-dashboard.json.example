@@ -1,0 +1,19 @@
+{    
+  "dashboard": {      
+    "title": "Container Orchestration Metrics Dashboard",         
+    "type": "dashboards"       
+      "panels": [        
+        {          
+          "id": 1,           
+          "title": "Containers Started Per Second - Orchestrator (Zero-Copy Counters)",
+          "targets": [             
+            "expr: | sum(rate(container_created[5m])) by (orchestration_service)"         
+        ],       
+      },      
+    }    
+  ]  
+},        
+"typeinfo": {          
+  "category": "Container Orchestration Observability (NexusFlow Path 1 Chapter - Phase MVP Deliverable)",            
+  "name": "Orchestrator Metrics Dashboard"     
+}  

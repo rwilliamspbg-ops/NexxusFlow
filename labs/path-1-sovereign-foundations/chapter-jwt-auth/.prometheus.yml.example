@@ -1,0 +1,22 @@
+# Prometheus Configuration for JWT Auth Stack Observability - NexusFlow (v1.2 Upgrade Doc Phase 0 MVP)
+
+global:    
+  scrape_interval: 15s   
+    external_labels:        
+      env: nexusflow-jwt-auth      
+        service: backend  
+
+scrape_configs:  
+- job_name: 'jwt_auth_backend'   
+   static_configs:         
+     - targets: ['localhost:8080']       
+       metrics_path: '/metrics'
+       
+# Subsystem-level latency breakdown per upgrade docs v1.2 Phase 0 plan (performance optimization section)  
+metric_relabel_configs:    
+- source_labels: [__name__, subsystem]      
+    regex: '.*;(?P<subsystem>afxdp|crypto|routing)'   
+      action: labeldrop       
+        drop_metric_names_with_label: false  
+
+# eBPF perf map integration for visual hot path analysis (optional enterprise tier)

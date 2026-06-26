@@ -1,0 +1,24 @@
+# JWT Auth Stack Deployment - Docker Compose example for NexusFlow lab chapter
+
+version: "3.9"  
+services:    
+  jwt-auth-backend:      
+    build: ../app/         
+    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
+    security_opt:                  # Security constraints (rootless Docker)       
+      - no-new-privileges:true     
+      - apparmor=unconfined        # Consider enabling profile later
+    cap_drop:                      
+      - ALL                         # Drop all capabilities; add back selectively    
+    volumes:                        
+      - ./data:/var/lib/app-data   # Local data isolation per user namespace      
+    environment:                    
+      - JWT_SECRET=${JWT_SECRET}   
+    depends_on:                     
+      - jwt-auth-db         
+
+  jwt-auth-db:          
+    image: postgres:15-alpine
+    environment:              
+      - POSTGRES_USER=labuser  
+      - POSTGRES_PASSWORD=labpassword  

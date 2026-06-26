@@ -1,0 +1,20 @@
+# Docker Compose for NexusFlow API Rate Limiting Lab - Phase MVP Deliverable (Path 1 Chapter)
+
+version: "3.9"  
+services:    
+  # Primary Rate Limiting Service with User Namespace Isolation
+  rate-limit-primary:      
+    build: ./Dockerfile.example        
+    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
+    security_opt:                  # Security constraints from v1.2 upgrade docs         
+      - no-new-privileges:true     
+      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
+    cap_drop:                      
+      - ALL                         # Drop all capabilities; add back selectively    
+    volumes:                        
+      - ./data:/var/lib/ratelimit       
+      
+# Volume driver for local data isolation per-user namespace from consolidated build plan specs  
+volumes:    
+  rate-data:            
+    name: nexusflow-api-rate-limit

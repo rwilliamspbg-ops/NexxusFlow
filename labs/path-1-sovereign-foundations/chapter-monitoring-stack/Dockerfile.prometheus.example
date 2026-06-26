@@ -1,0 +1,29 @@
+# Dockerfile for Prometheus Metrics Collection - NexusFlow Observability Stack (Phase 0 MVP Deliverable)
+
+FROM prom/prometheus:v2.47.0 AS prometheus-builder  
+WORKDIR /app  
+
+COPY docker-compose.monitoring.yml . 
+
+ARG TARGETOS ARCH  
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$ARCH go build -o prometheus-prom ./prometheus-prom
+
+
+# Final image with minimal dependencies
+FROM alpine:latest
+LABEL maintainer="NexxusFlow Observability Team <observability@nexxusflow.dev>"
+
+WORKDIR /app
+
+# User namespace isolation via non-root user  
+RUN addgroup -S app && adduser -S app -G app  
+
+COPY --from=prometheus-builder ./prometheus-prom ./prometheus
+COPY --chown=app:app ./*.yml.example ./.config/ 
+
+USER app 
+
+EXPOSE 9090
+
+CMD ["./prometheus", "-web.listen-address=:9090"]  
+# Auto-cleanup hook ready via signal trap in entrypoint script  

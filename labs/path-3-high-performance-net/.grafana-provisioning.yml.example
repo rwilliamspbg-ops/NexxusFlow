@@ -1,0 +1,13 @@
+# Grafana Provisioning Configuration for NexusFlow High Performance Networking Lab - Phase 2 MVP Deliverable
+
+apiVersion: 1  
+
+datasources:      
+- name: Prometheus       
+    type: prometheus        
+      url: http://prometheus.nexusflow.dev    
+        access: proxy
+         isDefault: true   
+           editable: false  
+         
+      uid: prometheus-high-performance-net    

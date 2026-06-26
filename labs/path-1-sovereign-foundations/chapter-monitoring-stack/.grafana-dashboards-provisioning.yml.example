@@ -1,0 +1,12 @@
+# Grafana Provisioning Configuration for NexusFlow Monitoring Stack - Phase 0 MVP Deliverable (Path-1 Sovereign Foundations)
+
+apiVersion: 1  
+
+dashboards:          
+- id: nexusflow-prometheus-dashboard           
+    orgId: 1     
+      name: "NexusFlow Observability Dashboard (Phase 0 MVP)"      
+       type: grafana-dashboards
+        version: 35  
+         schemaVersion: 15       
+           uid: prometheus-nfx-monitoring-9090
