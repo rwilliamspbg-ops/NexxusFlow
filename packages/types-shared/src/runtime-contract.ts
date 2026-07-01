@@ -19,7 +19,10 @@ export const labStateSchema = z.object({
 export const runtimeMetricsSnapshotSchema = z.object({
   auth_requests_total: z.number().int().nonnegative(),
   auth_success_total: z.number().int().nonnegative(),
+  auth_failure_total: z.number().int().nonnegative(),
+  alerts_received_total: z.number().int().nonnegative(),
   narrative_mutations_total: z.number().int().nonnegative(),
+  narrative_mutation_failures_total: z.number().int().nonnegative(),
   state_reads_total: z.number().int().nonnegative(),
   metrics_reads_total: z.number().int().nonnegative(),
   last_auth_processing_ns: z.number().int().nonnegative(),

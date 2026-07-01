@@ -25,31 +25,12 @@ services:
       - JWT_AUDIENCE=${JWT_AUDIENCE:-nexusflow-lab-clients}
       - JWT_TTL=${JWT_TTL:-15m}
       - PORT=8080
-    depends_on:
-      jwt-auth-db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 5s
-
-  # PostgreSQL for session / user storage
-  jwt-auth-db:
-    image: postgres:15-alpine
-    restart: unless-stopped
-    environment:
-      - POSTGRES_USER=labuser
-      - POSTGRES_DB=labdb
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U labuser -d labdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   prometheus:
     image: prom/prometheus:v2.53.0
@@ -68,7 +49,3 @@ services:
     depends_on:
       jwt-auth-backend:
         condition: service_started
-
-volumes:
-  db-data:
-    name: jwt-auth-db-data

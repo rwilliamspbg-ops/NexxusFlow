@@ -13,6 +13,7 @@ criteria.
   - JWT runtime starts without local `.env` files in staged environments
   - secret rotation path is documented and tested
   - no secret defaults remain in deployment assets
+  - Current repo status: manifests and docs are in place; cluster exercise still pending
 
 ### RL-02 Staging Deployment Manifests
 
@@ -29,6 +30,7 @@ criteria.
   - CI emits a signed image or attested artifact
   - verification steps are documented
   - promotion policy requires successful verification
+  - Current repo status: workflow and verification steps are checked in; GitHub Actions execution on `main` still needs evidence
 
 ### RL-04 Centralized Observability
 
@@ -37,15 +39,16 @@ criteria.
   - metrics are scraped outside local Compose
   - alerts route somewhere actionable
   - dashboards or equivalent visualizations exist for auth/runtime health
+  - Current repo status: staged Prometheus, Alertmanager, Grafana, and webhook routing are checked in; cluster exercise still pending
 
 ## High Priority
 
-### HP-01 Real Database Integration
+### HP-01 Persistence Strategy Revisit
 
-- Scope: replace the current Postgres placeholder dependency with real persistence usage or remove the dependency
+- Scope: only add persistence back into the JWT lab when there is a concrete stateful product need
 - Acceptance criteria:
-  - database is used by the runtime or removed from the stack
-  - tests cover the selected behavior
+  - any new persistence surface is justified in architecture docs
+  - tests and recovery procedures exist for the chosen data surface
 
 ### HP-02 Rust Integration Strategy Decision
 
@@ -81,3 +84,14 @@ criteria.
 - Scope: ensure repo status docs can be kept current without manual drift
 - Acceptance criteria:
   - release note or status update template references the status matrix and backlog
+
+## Resolved in Sprint 7
+
+- the JWT lab now has a checked-in staged deployment target under `deploy/staging/jwt-auth-lab`
+- the unused Postgres placeholder dependency has been removed from the JWT lab runtime stack
+
+## Implemented in Sprint 8-10, Pending Exercise Evidence
+
+- managed secret injection path via `ExternalSecret`
+- GHCR publish/sign/attest/verify workflow
+- staged centralized observability stack with Prometheus, Alertmanager, and Grafana

@@ -7,7 +7,8 @@ This runbook covers the currently implemented JWT lab runtime in
 
 - JWT backend: `http://localhost:8080`
 - Prometheus UI: `http://localhost:9090`
-- PostgreSQL: internal Compose service only
+- Alertmanager UI/API: `http://localhost:9093`
+- Grafana UI: `http://localhost:3000`
 
 ## Start and Stop
 
@@ -34,13 +35,16 @@ curl http://localhost:8080/readyz
 
 - Prometheus scrape endpoint: `GET /metrics`
 - JSON debugging snapshot: `GET /metrics/snapshot`
+- Alert webhook sink: `POST /alerts`
 
 Useful checks:
 
 ```bash
 curl http://localhost:8080/metrics
 curl http://localhost:8080/metrics/snapshot
+curl -X POST http://localhost:8080/alerts -H "Content-Type: application/json" -d '{"status":"firing","alerts":[]}'
 open http://localhost:9090
+open http://localhost:3000
 ```
 
 Useful metric names:
@@ -51,15 +55,18 @@ Useful metric names:
 - `jwt_lab_narrative_mutations_total`
 - `jwt_lab_narrative_mutation_failures_total`
 - `jwt_lab_latency_injected_milliseconds`
+- `jwt_lab_alerts_received_total`
 
 ## Common Failure Cases
 
-- Missing `JWT_SECRET` or `POSTGRES_PASSWORD`: Compose config or container startup fails fast.
+- Missing `JWT_SECRET`: Compose config or container startup fails fast.
 - `GET /readyz` failing: the backend did not start correctly or env configuration is invalid.
 - Prometheus target down: inspect `docker compose ps` and confirm the backend is reachable at `jwt-auth-backend:8080` inside the Compose network.
+- Alert flow missing in staging: verify Alertmanager can resolve `jwt-auth-backend:8080` and that `/alerts` returns `200`.
 
 ## Current Limits
 
 - Metrics are local to the lab runtime and are not pushed to any centralized system.
 - Alerts are defined in local Prometheus rules only; no Alertmanager integration exists.
 - The runtime state is in-memory and resets when the backend container restarts.
+- The runtime is currently stateless; there is no persisted service data surface in the JWT lab stack.

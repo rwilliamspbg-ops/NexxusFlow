@@ -9,9 +9,11 @@ NexusFlow. It is a runnable demo used for local learning and CI smoke checks.
 - readiness at `/readyz`
 - in-process narrative runtime endpoints at `/narrative/apply`, `/state`, and `/metrics`
 - a JSON metrics snapshot endpoint at `/metrics/snapshot`
-- a Docker Compose stack with a Postgres dependency
+- an alert webhook endpoint at `/alerts`
+- a Docker Compose stack for a stateless JWT lab runtime
 - a Prometheus service that scrapes the backend on port 9090
 - a hardened Dockerfile and build context for local image builds
+- a staged Kubernetes deployment target under `deploy/staging/jwt-auth-lab`
 - example provisioning files for Prometheus and Grafana
 - a Rust file with narrative hook prototypes used for future integration work
 
@@ -23,12 +25,14 @@ NexusFlow. It is a runnable demo used for local learning and CI smoke checks.
 - accepts a JSON request on `/auth` and returns a signed HS256 JWT
 - validates required config, allowed roles, and HTTP methods
 - applies narrative mutations and exposes state plus Prometheus metrics
+- accepts Alertmanager webhook deliveries in staged environments
 - validates that the Compose stack is structurally correct
 - can be built locally as a standalone container image
+- can be rendered as a staged Kubernetes deployment target
 
 ## What This Lab Does Not Do Yet
 
-- persist or validate sessions against the database
+- use a real persistence layer
 - expose dashboards and alert delivery beyond the local Prometheus instance
 - replace the mirrored in-process runtime with a direct Rust integration layer
 - rotate or externally manage signing secrets
@@ -46,6 +50,7 @@ From the repository root:
 ```bash
 make test-go
 make smoke-jwt-lab
+make smoke-jwt-staging
 make docker-build-jwt-lab
 ```
 
@@ -103,6 +108,7 @@ Operational endpoints:
 - `/readyz` for readiness
 - `/metrics` for Prometheus scraping
 - `/metrics/snapshot` for JSON debugging output
+- `/alerts` for Alertmanager webhook delivery
 
 The shared TypeScript mirror for these payloads and responses lives in
 `packages/types-shared/src/runtime-contract.ts`.
@@ -111,7 +117,7 @@ The shared TypeScript mirror for these payloads and responses lives in
 
 Before this lab can be treated as a real service, it needs:
 
-- real database integration
+- a deliberate persistence strategy if stateful behavior is introduced
 - metrics, logs, and readiness behavior suitable for deployment
 - secret rotation and managed secret storage
 
@@ -120,6 +126,10 @@ baseline for this lab. Sprint 3 added the integrated narrative runtime, state
 snapshot, and metrics snapshot endpoints. Sprint 4 added Prometheus-format
 metrics, readiness, and a Compose-level Prometheus service. Sprint 5 adds image
 build hardening, SBOM/scanning workflow coverage, and release/security docs.
+Sprint 7 adds a staged Kubernetes deployment target and removes the unused
+Postgres placeholder dependency from the JWT lab stack. Sprints 8-10 add
+managed-secret manifests, promoted-image signing/provenance workflow wiring,
+and staged Grafana/Alertmanager observability components.
 
 See `docs/production-scope.md` at the repo root for the current production
 roadmap.

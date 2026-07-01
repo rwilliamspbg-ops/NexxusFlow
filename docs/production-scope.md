@@ -62,12 +62,35 @@ This document defines the current production boundary for the repository.
 - versioning and release expectations are documented in `docs/versioning-and-release-policy.md`
 - a formal staging readiness review exists in `docs/staging-readiness-review.md`
 
+## Sprint 7 Outcome
+
+- a staged Kubernetes deployment target exists in `deploy/staging/jwt-auth-lab`
+- staged deployment instructions exist in `docs/jwt-lab-staging-deploy.md`
+- local and CI validation now include staged manifest checks
+- the unused Postgres placeholder dependency has been removed from the JWT lab stack, making the current runtime explicitly stateless
+
+## Sprint 8 Outcome
+
+- the staged JWT deployment now uses an `ExternalSecret` manifest instead of imperative secret creation
+- staging docs now describe an operator-managed secret injection path for `JWT_SECRET`
+
+## Sprint 9 Outcome
+
+- CI now includes a publish/sign/attest/verify image release job for the JWT backend on `main`
+- the staged deployment has a GHCR overlay for promoted images
+
+## Sprint 10 Outcome
+
+- the staged deployment now includes Alertmanager and Grafana alongside Prometheus
+- the JWT runtime exposes an `/alerts` webhook sink for staged alert routing
+- staging docs now cover centralized observability access paths and promoted-image deployment usage
+
 ## Still Out of Scope for Production
 
-- secret rotation and managed secret storage
+- cluster-side secret store provisioning and rotation exercise
 - deployment manifests beyond local Docker Compose and local container builds
 - direct runtime integration with the Rust crates instead of mirrored Go contracts
-- production alert delivery, dashboards, and centralized runbooks beyond the local lab slice
+- enterprise-grade alert delivery integrations and centralized runbooks beyond the current staged lab slice
 
 ## Promotion Criteria for Sprint 2+
 

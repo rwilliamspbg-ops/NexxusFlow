@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jwt-auth-grafana-config
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: jwt-auth-lab
+        orgId: 1
+        folder: JWT Lab
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards
+  jwt-auth-overview.json: |
+    {
+      "title": "JWT Lab Overview",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "30s",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "Auth Requests",
+          "gridPos": {"h": 8, "w": 8, "x": 0, "y": 0},
+          "targets": [{"expr": "sum(jwt_lab_auth_requests_total)", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Auth Failures",
+          "gridPos": {"h": 8, "w": 8, "x": 8, "y": 0},
+          "targets": [{"expr": "sum(jwt_lab_auth_failure_total)", "refId": "A"}]
+        },
+        {
+          "type": "stat",
+          "title": "Alerts Received",
+          "gridPos": {"h": 8, "w": 8, "x": 16, "y": 0},
+          "targets": [{"expr": "sum(jwt_lab_alerts_received_total)", "refId": "A"}]
+        },
+        {
+          "type": "timeseries",
+          "title": "Narrative Mutations",
+          "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+          "targets": [{"expr": "sum(jwt_lab_narrative_mutations_total)", "refId": "A"}]
+        },
+        {
+          "type": "timeseries",
+          "title": "Auth Success Ratio",
+          "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+          "targets": [{"expr": "jwt_lab_auth_success_ratio", "refId": "A"}]
+        }
+      ]
+    }

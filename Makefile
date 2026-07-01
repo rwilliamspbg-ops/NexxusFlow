@@ -1,7 +1,7 @@
 # NexusFlow — Development Makefile
 # Run `make help` to see all available targets.
 
-.PHONY: help bootstrap dev up down lint lint-ts clippy fmt fmt-check test test-rust test-ts test-go smoke-jwt-lab docker-build-jwt-lab bench clean verify-bridge
+.PHONY: help bootstrap dev up down lint lint-ts clippy fmt fmt-check test test-rust test-ts test-go smoke-jwt-lab smoke-jwt-staging docker-build-jwt-lab bench clean verify-bridge
 
 # ── Meta ──────────────────────────────────────────────────────────────────────
 help: ## Show this help message
@@ -54,6 +54,10 @@ test-go: ## Run Go tests for the JWT auth lab
 
 smoke-jwt-lab: ## Validate the JWT auth lab Docker Compose configuration
 	docker compose --env-file labs/path-1-sovereign-foundations/chapter-jwt-auth/.env.example -f labs/path-1-sovereign-foundations/chapter-jwt-auth/docker-compose.yml config > /dev/null
+
+smoke-jwt-staging: ## Validate the staged Kubernetes manifests for the JWT auth lab
+	kubectl kustomize deploy/staging/jwt-auth-lab > /dev/null
+	kubectl kustomize deploy/staging/jwt-auth-lab-ghcr > /dev/null
 
 docker-build-jwt-lab: ## Build the JWT auth backend image locally
 	docker build -f labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend -t nexusflow/jwt-auth-backend:local labs/path-1-sovereign-foundations/chapter-jwt-auth

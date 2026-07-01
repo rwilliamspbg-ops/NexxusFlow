@@ -298,6 +298,39 @@ func TestMetricsEndpointExposesPrometheusText(t *testing.T) {
 	}
 }
 
+func TestAlertWebhookUpdatesMetrics(t *testing.T) {
+	handler := NewJWTAuthHandler(testConfig())
+	request := httptest.NewRequest(
+		http.MethodPost,
+		"/alerts",
+		strings.NewReader(`{"status":"firing","alerts":[{"status":"firing","labels":{"alertname":"JWTLabAuthFailuresDetected"},"annotations":{"summary":"auth failures"}}]}`),
+	)
+	response := httptest.NewRecorder()
+
+	handler.handleAlerts(response, request)
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status %d, got %d", http.StatusOK, response.Code)
+	}
+
+	metricsResponse := httptest.NewRecorder()
+	handler.handleMetricsSnapshot(metricsResponse, httptest.NewRequest(http.MethodGet, "/metrics/snapshot", nil))
+	metricsBody := decodeJSONResponse[runtimeMetricsSnapshot](t, metricsResponse)
+	if metricsBody.AlertsReceivedTotal != 1 {
+		t.Fatalf("expected one alert received, got %+v", metricsBody)
+	}
+
+	prometheusResponse := httptest.NewRecorder()
+	handler.handleMetrics(prometheusResponse, httptest.NewRequest(http.MethodGet, "/metrics", nil))
+	body, err := io.ReadAll(prometheusResponse.Body)
+	if err != nil {
+		t.Fatalf("read metrics body: %v", err)
+	}
+	if !strings.Contains(string(body), "jwt_lab_alerts_received_total 1") {
+		t.Fatalf("expected alerts metric in Prometheus output, got %s", string(body))
+	}
+}
+
 func TestLoadConfigRequiresSecret(t *testing.T) {
 	t.Setenv("JWT_SECRET", "")
 	t.Setenv("PORT", "")

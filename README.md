@@ -15,6 +15,7 @@ describe future paths, chapters, or services that have not been implemented.
   - `crates/observability-core`
 - Shared TypeScript schemas in `packages/types-shared`
 - One runnable lab slice in `labs/path-1-sovereign-foundations/chapter-jwt-auth`
+- One staged deployment target in `deploy/staging/jwt-auth-lab`
 - GitHub Actions CI for Rust, TypeScript, and the JWT lab baseline
 
 ## Repository Layout
@@ -30,6 +31,9 @@ describe future paths, chapters, or services that have not been implemented.
 ├── labs/
 │   └── path-1-sovereign-foundations/
 │       └── chapter-jwt-auth/
+├── deploy/
+│   └── staging/
+│       └── jwt-auth-lab/
 ├── packages/
 │   └── types-shared/
 └── .github/
@@ -45,6 +49,7 @@ describe future paths, chapters, or services that have not been implemented.
 - Runtime boundaries for the current integrated slice live in `docs/runtime-boundaries.md`.
 - Release and environment guidance for the current lab slice live in `docs/jwt-lab-release-hardening.md`.
 - Architecture, status, and staging-readiness docs live under `docs/`.
+- The current Sprint 7-10 milestone map lives in `docs/milestone-plan-sprint7-10.md`.
 
 ## Prerequisites
 
@@ -75,6 +80,7 @@ make fmt-check
 make lint
 make test
 make smoke-jwt-lab
+make smoke-jwt-staging
 make docker-build-jwt-lab
 ```
 
@@ -83,6 +89,7 @@ Target summary:
 - `make lint` runs Rust Clippy, TypeScript lint, and Go tests for the JWT lab.
 - `make test` runs Rust tests, TypeScript build and lint, and Go tests.
 - `make smoke-jwt-lab` validates the JWT lab Compose configuration.
+- `make smoke-jwt-staging` validates the staged Kubernetes manifests.
 - `make docker-build-jwt-lab` builds the JWT backend image locally using the hardened lab Dockerfile.
 
 ## JWT Lab Quick Start
@@ -102,6 +109,7 @@ curl http://localhost:8080/narrative/apply \
 curl http://localhost:8080/state
 curl http://localhost:8080/metrics
 curl http://localhost:8080/metrics/snapshot
+curl -X POST http://localhost:8080/alerts -H "Content-Type: application/json" -d '{"status":"firing","alerts":[]}'
 open http://localhost:9090
 docker compose down
 ```
@@ -122,6 +130,13 @@ work in `docs/production-scope.md`, especially:
 - integrated observability
 - end-to-end tests across Rust, Go, and TypeScript surfaces
 - image signing, promotion, and centralized security operations
+
+The staged deployment substrate for the current JWT lab slice lives in
+`deploy/staging/jwt-auth-lab`, and the staged rollout procedure lives in
+`docs/jwt-lab-staging-deploy.md`.
+
+The promoted-image overlay for staged clusters lives in
+`deploy/staging/jwt-auth-lab-ghcr`.
 
 For the current readiness view, also see:
 

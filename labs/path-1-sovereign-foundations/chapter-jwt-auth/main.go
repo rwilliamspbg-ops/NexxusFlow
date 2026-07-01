@@ -48,6 +48,7 @@ type runtimeMetricsSnapshot struct {
 	AuthRequestsTotal              uint64 `json:"auth_requests_total"`
 	AuthSuccessTotal               uint64 `json:"auth_success_total"`
 	AuthFailureTotal               uint64 `json:"auth_failure_total"`
+	AlertsReceivedTotal            uint64 `json:"alerts_received_total"`
 	NarrativeMutationsTotal        uint64 `json:"narrative_mutations_total"`
 	NarrativeMutationFailuresTotal uint64 `json:"narrative_mutation_failures_total"`
 	StateReadsTotal                uint64 `json:"state_reads_total"`
@@ -68,6 +69,15 @@ type narrativeMutationResponse struct {
 	AppliedMutation narrativeMutationRequest `json:"applied_mutation"`
 	State           labState                 `json:"state"`
 	Metrics         runtimeMetricsSnapshot   `json:"metrics"`
+}
+
+type alertmanagerWebhookPayload struct {
+	Status string `json:"status"`
+	Alerts []struct {
+		Status      string            `json:"status"`
+		Labels      map[string]string `json:"labels"`
+		Annotations map[string]string `json:"annotations"`
+	} `json:"alerts"`
 }
 
 type labRuntime struct {
@@ -93,6 +103,7 @@ func newLabRuntimeCollector(runtime *labRuntime) *labRuntimeCollector {
 			"auth_requests_total":                  prometheus.NewDesc("jwt_lab_auth_requests_total", "Total JWT auth requests received.", nil, nil),
 			"auth_success_total":                   prometheus.NewDesc("jwt_lab_auth_success_total", "Total successful JWT auth responses.", nil, nil),
 			"auth_failure_total":                   prometheus.NewDesc("jwt_lab_auth_failure_total", "Total failed JWT auth responses.", nil, nil),
+			"alerts_received_total":                prometheus.NewDesc("jwt_lab_alerts_received_total", "Total Alertmanager webhook deliveries received by the JWT lab runtime.", nil, nil),
 			"narrative_mutations_total":            prometheus.NewDesc("jwt_lab_narrative_mutations_total", "Total successful narrative mutations applied.", nil, nil),
 			"narrative_mutation_failures_total":    prometheus.NewDesc("jwt_lab_narrative_mutation_failures_total", "Total failed narrative mutation requests.", nil, nil),
 			"state_reads_total":                    prometheus.NewDesc("jwt_lab_state_reads_total", "Total runtime state snapshot reads.", nil, nil),
@@ -122,6 +133,7 @@ func (collector *labRuntimeCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(collector.descs["auth_requests_total"], prometheus.CounterValue, float64(snapshot.metrics.AuthRequestsTotal))
 	ch <- prometheus.MustNewConstMetric(collector.descs["auth_success_total"], prometheus.CounterValue, float64(snapshot.metrics.AuthSuccessTotal))
 	ch <- prometheus.MustNewConstMetric(collector.descs["auth_failure_total"], prometheus.CounterValue, float64(snapshot.metrics.AuthFailureTotal))
+	ch <- prometheus.MustNewConstMetric(collector.descs["alerts_received_total"], prometheus.CounterValue, float64(snapshot.metrics.AlertsReceivedTotal))
 	ch <- prometheus.MustNewConstMetric(collector.descs["narrative_mutations_total"], prometheus.CounterValue, float64(snapshot.metrics.NarrativeMutationsTotal))
 	ch <- prometheus.MustNewConstMetric(collector.descs["narrative_mutation_failures_total"], prometheus.CounterValue, float64(snapshot.metrics.NarrativeMutationFailuresTotal))
 	ch <- prometheus.MustNewConstMetric(collector.descs["state_reads_total"], prometheus.CounterValue, float64(snapshot.metrics.StateReadsTotal))
@@ -201,6 +213,12 @@ func (runtime *labRuntime) recordNarrativeMutationFailure() {
 	runtime.mu.Lock()
 	defer runtime.mu.Unlock()
 	runtime.metrics.NarrativeMutationFailuresTotal++
+}
+
+func (runtime *labRuntime) recordAlertsReceived(count int) {
+	runtime.mu.Lock()
+	defer runtime.mu.Unlock()
+	runtime.metrics.AlertsReceivedTotal += uint64(count)
 }
 
 func normalizeChannels(channels []string) []string {
@@ -393,6 +411,23 @@ func (h *JWTAuthHandler) handleMetricsSnapshot(w http.ResponseWriter, r *http.Re
 	writeJSON(w, http.StatusOK, h.runtime.snapshotMetrics())
 }
 
+func (h *JWTAuthHandler) handleAlerts(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	var payload alertmanagerWebhookPayload
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	h.runtime.recordAlertsReceived(len(payload.Alerts))
+	log.Printf("Alertmanager webhook received: status=%q count=%d", payload.Status, len(payload.Alerts))
+	writeJSON(w, http.StatusOK, map[string]any{"status": "received", "alerts": len(payload.Alerts)})
+}
+
 func (h *JWTAuthHandler) handleNarrativeMutation(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
@@ -543,6 +578,7 @@ func main() {
 	http.HandleFunc("/state", handler.handleState)
 	http.HandleFunc("/metrics", handler.handleMetrics)
 	http.HandleFunc("/metrics/snapshot", handler.handleMetricsSnapshot)
+	http.HandleFunc("/alerts", handler.handleAlerts)
 	http.HandleFunc("/narrative/apply", handler.handleNarrativeMutation)
 
 	log.Printf("JWT auth backend listening on :%s issuer=%q audience=%q ttl=%s", config.port, config.issuer, config.audience, config.tokenTTL)
