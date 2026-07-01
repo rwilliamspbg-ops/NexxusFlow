@@ -1,172 +1,125 @@
-# JWT Auth Stack Deployment - NexusFlow Lab Prototype (Phase 0 MVP Chapter)
+# JWT Auth Lab
 
-This lab chapter teaches you to deploy and secure your backend services with JSON Web Tokens. It's part of the **Sovereign Foundations Path** in NexusFlow v1.2 upgrade documentation.
+This directory contains the current JWT authentication lab prototype for
+NexusFlow. It is a runnable demo used for local learning and CI smoke checks.
 
-## 📚 Learning Objectives:
-- Deploy JWT authentication middleware to protect API endpoints  
-- Configure user namespace isolation for containerized applications (seccomp/apparmor profiles)  
-- Integrate with Prometheus metrics + Grafana dashboards (observability stack from docs)  
-- Apply progressive disclosure via Simple Mode feature flag (disable MCR spraying, advanced routing challenges in UI per upgrade doc)
+## What Is Here
 
-## 🚀 Prerequisites:
+- a Go HTTP service with `/health` and `/auth`
+- readiness at `/readyz`
+- in-process narrative runtime endpoints at `/narrative/apply`, `/state`, and `/metrics`
+- a JSON metrics snapshot endpoint at `/metrics/snapshot`
+- a Docker Compose stack with a Postgres dependency
+- a Prometheus service that scrapes the backend on port 9090
+- a hardened Dockerfile and build context for local image builds
+- example provisioning files for Prometheus and Grafana
+- a Rust file with narrative hook prototypes used for future integration work
+
+## What This Lab Does Today
+
+- starts a backend service on port 8080
+- responds to `GET /health` with a simple JSON health payload
+- responds to `GET /readyz` with runtime readiness details
+- accepts a JSON request on `/auth` and returns a signed HS256 JWT
+- validates required config, allowed roles, and HTTP methods
+- applies narrative mutations and exposes state plus Prometheus metrics
+- validates that the Compose stack is structurally correct
+- can be built locally as a standalone container image
+
+## What This Lab Does Not Do Yet
+
+- persist or validate sessions against the database
+- expose dashboards and alert delivery beyond the local Prometheus instance
+- replace the mirrored in-process runtime with a direct Rust integration layer
+- rotate or externally manage signing secrets
+- sign and promote images across environments
+
+## Prerequisites
+
+- Docker with Compose support
+- Go 1.22+ if you want to run the handler tests locally
+
+## Local Validation
+
+From the repository root:
+
 ```bash
-# Docker installed and running on your system
-docker --version  
-
-# Rust toolchain available for data plane crates  
-cargo --version
-
-# TypeScript/npm for shared types Zod schemas
-npm -v
+make test-go
+make smoke-jwt-lab
+make docker-build-jwt-lab
 ```
 
----
-
-## ⏱️ Lab Duration: ~45 minutes
-
-## 📊 Expected Outcomes after completing this chapter:
-1. Backend JWT auth service running on port 8080 with health checks  
-2. PostgreSQL database container connected to backend (session storage)  
-3. Zero-copy counters for authentication requests via Prometheus metrics crate integration  
-4. Observability dashboards configured in Grafana  
-
----
-
-## 🛠️ Step-by-Step Instructions:
-
-### **Setup Narrative Hook**
-The narrative engine XState-like state machine node initializes when you run the lab environment manager (LEM). This hooks into `crates/narrative-engine/` with zero-copy Arc<T> mutation for decision point payloads.
+From this directory directly:
 
 ```bash
-# Verify Docker Compose setup before running JWT Auth Stack  
-docker compose -f docker-compose.yml config  
-
-# Apply user namespace isolation via seccomp/AppArmor profiles automatically  
-echo "✅ User namespaces enabled: ${UID}:${GID}" 
+cp .env.example .env
+go test ./...
+docker compose --env-file .env config
 ```
 
-### **Command Blocks (Execute with explanations):**
+## Run the Lab
 
-#### Command 1: Start Backend Service
 ```bash
-cd JWT_AUTH_STACK/ && docker compose up -d --build
-
-# Explanation: Builds Dockerfile.backend image and runs backend service on port 8080.  
-# User namespace isolation automatically enabled via security_opt flags in v1.2 upgrade doc (seccomp profiles optional for enterprise tier). 
+cp .env.example .env
+docker compose up -d --build
+curl http://localhost:8080/health
+curl http://localhost:8080/readyz
+curl http://localhost:8080/auth \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":"test-user","role":"admin"}'
+curl http://localhost:8080/narrative/apply \
+  -H "Content-Type: application/json" \
+  -d '{"type":"partition_network","channels":["eth0","eth1"]}'
+curl http://localhost:8080/state
+curl http://localhost:8080/metrics
+curl http://localhost:8080/metrics/snapshot
+open http://localhost:9090
+docker compose down
 ```
 
-#### Command 2: Check Health Endpoint
-```bash
-curl http://localhost:8080/health -X GET  
+Example response:
 
-# Expected Output: {"status":"healthy"}  
-# Explanation: Verifies JWT auth service is running and healthy per Docker healthcheck integration from observability-core crate.
+```json
+{"token":"<signed-jwt>","payload":{"user_id":"test-user","role":"admin"}}
 ```
 
-#### Command 3: Trigger Authentication Request (Test Decision Point)
-```bash
-curl http://localhost:8080/auth \ 
-     -H "Content-Type: application/json" \   
-     -d '{\"user_id\":\"test_user\",\"role\":\"admin"}'  
+The token includes these claims:
 
-# Expected Output: {"token":"eyJhbGciOiJIUzI1NiIs...","payload":{"user_id":..."}}  
-# Explanation: JWT auth handler processes request, returns deterministic token for testing (production uses proper HMAC512).
-```
+- `iss`: `JWT_ISSUER` or `nexusflow-jwt-lab`
+- `aud`: `JWT_AUDIENCE` or `nexusflow-lab-clients`
+- `sub`: the submitted `user_id`
+- `role`: the submitted role when it is `admin`, `operator`, or `viewer`
+- `exp`: current time plus `JWT_TTL` or 15 minutes
 
-### **Observability Integration:**
-Prometheus metrics are exposed automatically when backend container starts. The observability-core crate in `crates/observability-core/src/lib.rs` provides lock-free stats collection via crossbeam MPMC channels to avoid core stalling under high-load (per upgrade docs v1.2).  
+The runtime endpoints use these mutation types:
 
-#### Grafana Dashboard Setup:
-```bash
-# Load dashboard definition from example JSON  
-grafana-cli dashboard import ./.grafana-dashboard.json.example  
+- `inject_latency` with `delay_us`
+- `partition_network` with `channels`
+- `fail_node` with `node_id` and `cause`
 
-# Expected Panel: "Authentication Requests Total (5m) - Zero-Copy Counters"
-```
+Operational endpoints:
 
----
+- `/health` for liveness
+- `/readyz` for readiness
+- `/metrics` for Prometheus scraping
+- `/metrics/snapshot` for JSON debugging output
 
-## 🧠 Decision Point Example (From v1.2 Progressive Disclosure Schema):
+The shared TypeScript mirror for these payloads and responses lives in
+`packages/types-shared/src/runtime-contract.ts`.
 
-**Scenario:** After successful authentication request, you should decide whether to inject latency for performance testing or keep system running normally.
+## Production Follow-Up
 
-```typescript
-// TypeScript Interface Effect from upgrade docs: State Mutation Contract  
-{ type: 'LATENCY', valueMs?: number }  // Apply socket-level delay in AF_XDP packet handler
+Before this lab can be treated as a real service, it needs:
 
-# Rust struct mutation via Arc<T> (zero-copy shallow clone, no heap alloc)  
-struct InjectLatency { pub delay_us: u32 }  
-impl LabState { 
-    pub fn inject_latency(&self, delay_us: u32) -> Self {
-        let mut state = self.state.clone();  // shallow clone Arc<T> for async context safety
-        state.latency_injected_ms = Some(delay_us as u64);  
-        state
-    }  
-}
+- real database integration
+- metrics, logs, and readiness behavior suitable for deployment
+- secret rotation and managed secret storage
 
-# Lab State Mutation (zero-copy, thread-safe via Arc<T>) from upgrade docs v1.2:  
-Payload Type | Effect on Lab State
-------------|------------------------
-InjectLatency{delay_us: 500_000} | Apply socket-level delay in AF_XDP packet handler for performance testing
+Sprint 2 completed the signed-token, config-loading, and request-validation
+baseline for this lab. Sprint 3 added the integrated narrative runtime, state
+snapshot, and metrics snapshot endpoints. Sprint 4 added Prometheus-format
+metrics, readiness, and a Compose-level Prometheus service. Sprint 5 adds image
+build hardening, SBOM/scanning workflow coverage, and release/security docs.
 
-# Example payload to inject latency (valueMs) - simpleModeHint enabled per chapter config.
-```
-
----
-
-## 🔧 Advanced Features Toggle (Simple Mode):
-To enable/disable advanced features like MCR spraying, use the `simpleModeHint` field from TypeScript Zod schema:
-
-```typescript
-// From packages/types-shared/src/lab-chapter.ts  
-const jwtAuthChapterExample = {    
-  simpleModeHint: true,      // Enable/disables advanced features (MCR spraying, routing challenges in UI)  
-};  
-
-# v1.2 upgrade doc notes: Progressive depth toggle via feature flag disables MCR 
-```
-
----
-
-## 🧹 Cleanup & Auto-Rollback Hooks:
-Per LEM upgrade docs from Phase 0 completion plan, auto-cleanup is ready on user exit or resource exhaustion (CPU/memory limits enforced per Docker `--memory` flags).  
-
-```bash  
-# Manual cleanup when lab session complete (auto-rollback to checkpoint if needed)  
-docker compose -f docker-compose.yml down
-
-# Explanation: Tears down entire stack gracefully before leaving lab session as per upgrade doc make dev/down commands.
-```
-
----
-
-## ✅ Checklist for Successful Lab Completion:
-
-- [x] Backend service running on port 8080 with health checks (curl http://localhost:8080/health)  
-- [x] PostgreSQL database connected to backend container (POSTGRES_USER=labuser, POSTGRES_PASSWORD from .env file)
-- [ ] Authentication requests processed successfully (token generation deterministic for testing)  
-- [ ] Observability dashboards configured in Grafana (Prometheus recording rules imported)  
-
----
-
-## 📚 Next Steps:
-After completing this chapter, you should progress to **Chapter 2: Monitoring Stack Deployment** to set up Prometheus + Loki logs integration. Use the `make dev` command from lab manager scripts to orchestrate multiple chapters sequentially in v1.2 upgrade docs Phase 0 sprint plan.
-
----
-
-## 🛡️ Security Hardening (from v1.2 Upgrade Doc):
-```yaml  
-# Docker Compose security_opt flags already applied:      
-security_opt: 
-    - no-new-privileges:true     
-      - apparmor=unconfined        # Consider enabling profile later for enterprise tier
-      
-cap_drop:    
-  - ALL                         # Drop all capabilities; add back selectively  
-
-user_namespace_isolation_enabled = true (UID:${GID} mapping)  
-```
-
----
-
-**🎉 Congratulations!** You've completed the JWT Auth Stack deployment chapter. This is Phase 0 MVP deliverable as specified in your consolidated build plan from upgrade docs v1.2 and NexusFlow architecture documentation.
+See `docs/production-scope.md` at the repo root for the current production
+roadmap.

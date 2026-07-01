@@ -1,12 +1,16 @@
-# NexusFlow Monorepo — Development Makefile
+# NexusFlow — Development Makefile
 # Run `make help` to see all available targets.
 
-.PHONY: help dev up down lint clippy fmt fmt-check test bench clean
+.PHONY: help bootstrap dev up down lint lint-ts clippy fmt fmt-check test test-rust test-ts test-go smoke-jwt-lab docker-build-jwt-lab bench clean verify-bridge
 
 # ── Meta ──────────────────────────────────────────────────────────────────────
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+
+# ── Bootstrap ────────────────────────────────────────────────────────────────
+bootstrap: ## Install local package dependencies required for TypeScript checks
+	npm ci --prefix packages/types-shared
 
 # ── Lab environment ───────────────────────────────────────────────────────────
 dev: ## Start JWT-auth lab stack with hot-reload (docker compose watch)
@@ -29,7 +33,7 @@ fmt: ## Auto-format all Rust source files
 fmt-check: ## Check Rust formatting without writing (CI gate)
 	cargo fmt --all -- --check
 
-test: test-rust test-ts ## Run all tests (Rust + TypeScript)
+test: test-rust test-ts test-go ## Run all tests (Rust + TypeScript + Go)
 
 test-rust: ## Run cargo tests across the workspace
 	cargo test --workspace --all-targets
@@ -38,11 +42,23 @@ bench: ## Run microbenchmark suite for data-plane hot-path validation
 	cargo bench --workspace --all-targets
 
 # ── TypeScript / npm ──────────────────────────────────────────────────────────
-test-ts: ## Run npm test for packages/types-shared
-	npm run type-check --prefix packages/types-shared
+test-ts: ## Build and lint packages/types-shared
+	npm test --prefix packages/types-shared
 
-lint: clippy ## Run all linters (Rust clippy; TS lint via CI)
-	npm run lint --prefix packages/types-shared || echo "TS lint skipped (no eslint config yet)"
+lint-ts: ## Run eslint for packages/types-shared
+	npm run lint --prefix packages/types-shared
+
+# ── Go / lab validation ───────────────────────────────────────────────────────
+test-go: ## Run Go tests for the JWT auth lab
+	cd labs/path-1-sovereign-foundations/chapter-jwt-auth && go test ./...
+
+smoke-jwt-lab: ## Validate the JWT auth lab Docker Compose configuration
+	docker compose --env-file labs/path-1-sovereign-foundations/chapter-jwt-auth/.env.example -f labs/path-1-sovereign-foundations/chapter-jwt-auth/docker-compose.yml config > /dev/null
+
+docker-build-jwt-lab: ## Build the JWT auth backend image locally
+	docker build -f labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend -t nexusflow/jwt-auth-backend:local labs/path-1-sovereign-foundations/chapter-jwt-auth
+
+lint: clippy lint-ts test-go ## Run all enforceable code-quality checks
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 clean: ## Remove Rust build artefacts

@@ -30,7 +30,7 @@ export const resourceQuotaSchema = z.object({
 export type ResourceQuota = z.infer<typeof resourceQuotaSchema>;
 
 // ── Usage example (compile-time type checked) ────────────────────────────────
-const _collaborativeLabExample: CollaborativeLab = {
+export const collaborativeLabExample: CollaborativeLab = {
   labChapterId: "path-1-sovereign-foundations.chapter-jwt-auth",
   collaborators: [
     {

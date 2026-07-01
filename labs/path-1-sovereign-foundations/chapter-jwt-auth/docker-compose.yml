@@ -13,10 +13,17 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
     volumes:
       - ./data:/var/lib/app-data
     environment:
-      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - JWT_ISSUER=${JWT_ISSUER:-nexusflow-jwt-lab}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-nexusflow-lab-clients}
+      - JWT_TTL=${JWT_TTL:-15m}
       - PORT=8080
     depends_on:
       jwt-auth-db:
@@ -31,10 +38,11 @@ services:
   # PostgreSQL for session / user storage
   jwt-auth-db:
     image: postgres:15-alpine
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=labuser
       - POSTGRES_DB=labdb
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dev-password}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
@@ -42,6 +50,24 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - "9090:9090"
+    read_only: true
+    tmpfs:
+      - /prometheus
+      - /tmp
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml:ro
+    depends_on:
+      jwt-auth-backend:
+        condition: service_started
 
 volumes:
   db-data:

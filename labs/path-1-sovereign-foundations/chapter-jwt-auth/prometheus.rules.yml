@@ -1,5 +1,3 @@
-# Example Prometheus recording rules for the JWT lab.
-
 groups:
   - name: jwt_auth_lab
     rules:
@@ -17,4 +15,3 @@ groups:
         annotations:
           summary: JWT lab auth failures detected
           description: The JWT lab backend has served one or more failed auth requests in the last five minutes.
-        
