@@ -98,7 +98,10 @@ mod tests {
         ring.record_packet(PacketStat::new(2, 2)).unwrap();
         // Third send should fail — channel is full
         let result = ring.record_packet(PacketStat::new(3, 3));
-        assert!(result.is_err(), "Channel should signal back-pressure when full");
+        assert!(
+            result.is_err(),
+            "Channel should signal back-pressure when full"
+        );
         println!("✅ observability-core: back-pressure signalled correctly");
     }
 
