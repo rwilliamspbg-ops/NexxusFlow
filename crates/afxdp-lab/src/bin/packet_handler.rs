@@ -1,9 +1,9 @@
 //! Packet Handler Binary — AF_XDP Hot Path Demo for High-Throughput Testing
 
-use afxdp_lab::{AF_XDPLabHandler, PacketError};
+use afxdp_lab::{AfXdpLabHandler, PacketError};
 
 fn main() {
-    let mut handler = AF_XDPLabHandler::new();
+    let mut handler = AfXdpLabHandler::new();
 
     println!("🚀 AF_XDP Packet Handler Initialized");
     println!("✅ Hardware detection complete (simulated mode if no NIC)");
