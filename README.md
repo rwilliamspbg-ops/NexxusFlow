@@ -1,137 +1,158 @@
-# NexusFlow 🚀  
-## *Master Modern Infrastructure by Building and Breaking Systems*
+# NexusFlow
 
-[![License](https://img.shields.io/badge/License-AGPL%2F3.0-blue.svg)](LICENSE)  
-[![Build Status](https://github.com/nexxusflow/nexusflow-monorepo/workflows/CI/badge.svg)]()  
+NexusFlow is an infrastructure-learning repository built from small Rust, Go,
+and TypeScript components. The current repo is a development workspace for lab
+prototypes, shared schemas, and supporting automation.
 
----
+This README describes the checked-in repository as it exists today. It does not
+describe future paths, chapters, or services that have not been implemented.
 
-## Overview
-NexusFlow is a narrative-driven infrastructure learning platform that teaches by doing with real systems while maintaining **zero-copy performance**, **lock-free concurrency patterns**, and **progressive complexity**. 
+## Current Scope
 
-### Core Principles:
-- ✅ **Zero-Copy Hot Path**: AF_XDP datapath avoids heap allocations; UMEM rings for packet buffers.  
-- 🔒 **Lock-Free Concurrency**: Crossbeam atomics, `std::sync::atomic` for counter/stats in data path.  
-- 📚 **Progressive Disclosure**: Simple Mode disables advanced features (MCR, eBPF).  
-- 👑 **Sovereignty First**: Core functionality requires no cloud; SQLite + local Docker Compose as default.  
+- Rust workspace with three prototype crates:
+  - `crates/afxdp-lab`
+  - `crates/narrative-engine`
+  - `crates/observability-core`
+- Shared TypeScript schemas in `packages/types-shared`
+- One runnable lab slice in `labs/path-1-sovereign-foundations/chapter-jwt-auth`
+- One staged deployment target in `deploy/staging/jwt-auth-lab`
+- GitHub Actions CI for Rust, TypeScript, and the JWT lab baseline
 
----
+## Repository Layout
 
-## Architecture Diagram
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        NEXUSFLOW                              │
-│  "Master Modern Infrastructure by Building and Breaking Systems"  │
-├─────────────────────────────────────────────────────────────┤
-│                                                               │
-│ ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐ │
-│ │ Narrative &     │ │ Identity &       │ High-Performance    │ │
-│ │ Orchestration   │←→| Persistence      │  Data Plane        │ │
-│ │ (Cognoscent Echo)│ |(Sovereign Mon.) │  (Mohawk Nexus)     │ │
-│ └────────┬─────────┘ │                  └────────┬───────────┘ │
-│          │           │                           │            │
-│          ▼           ▼                           ▼            │
-│ ┌─────────────────────────────────────────────────────┐      │
-│ │   Lab Environment Manager (LEM)                       │      │
-│ │ Docker/K8s Provisioning, Namespace Isolation         │      │
-│ │ Cleanup Hooks                                       │      │
-│ └─────────────────────────────────────────────────────┘       │
-│                                                               │
-└──────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Project Structure (Turborepo Monorepo)
-```
-nexusflow-monorepo/
-├── apps/                          # Frontend + CLI tools  
-│   ├── web-client/               # Next.js frontend (React + Tailwind) 
-│   └── cli-tools/                # Lab terminal emulator helper
-├── crates/                       # Rust libraries for data plane/narrative hooks  
-│   ├── afxdp-lab/               # Containerized AF_XDP demo harness
-│   ├── narrative-engine/        # XState-like branching logic + state mutation API
-│   └── observability-core/      # Metrics emitter, WebSocket updater
-├── packages/                     # Shared type definitions (TypeScript/Zod) 
-│   └── types-shared/            # Zod schemas for labs, narratives, progress
-├── labs/                         # Individual lab chapters  
-│   ├── path-1-sovereign-foundations/  # Beginner tier
-│   │   ├── chapter-jwt-auth/
-│   │   └── chapter-monitoring-stack/
-│   └── ... (paths 2 & 3 TBD)
-├── docs/                         # Self-hosted documentation  
-└── ci/                          # GitHub Actions workflows, linting configs
+```text
+.
+├── Cargo.toml
+├── Makefile
+├── crates/
+│   ├── afxdp-lab/
+│   ├── narrative-engine/
+│   └── observability-core/
+├── labs/
+│   └── path-1-sovereign-foundations/
+│       └── chapter-jwt-auth/
+├── deploy/
+│   └── staging/
+│       └── jwt-auth-lab/
+├── packages/
+│   └── types-shared/
+└── .github/
+    └── workflows/
 ```
 
----
+## Status
 
-## Quick Start Guide
+- The Rust crates are prototype libraries and example binaries.
+- The JWT auth chapter now exposes auth, narrative mutation, state, and metrics endpoints in one lab runtime, but it is still not a production auth service.
+- The TypeScript package contains shared schemas and examples.
+- The production roadmap and scope notes live in `docs/production-scope.md`.
+- Runtime boundaries for the current integrated slice live in `docs/runtime-boundaries.md`.
+- Release and environment guidance for the current lab slice live in `docs/jwt-lab-release-hardening.md`.
+- Architecture, status, and staging-readiness docs live under `docs/`.
+- The current Sprint 7-10 milestone map lives in `docs/milestone-plan-sprint7-10.md`.
 
-### Prerequisites:
-- **Rust** v1.75+ (`cargo --version`) 
-- **Docker** (for lab container orchestration)  
-- **Node.js** 20 LTS for frontend toolchain  
+## Prerequisites
 
-### Installation:
+- Rust stable with `cargo`
+- Node.js 20+
+- Go 1.22+
+- Docker with Compose support
+
+## Bootstrap
+
 ```bash
-cd nexusflow-monorepo
-
-# Initialize Git repo and install dependencies
-git init && git checkout -b main
-
-# Install TypeScript dev dependencies in packages/types-shared
-npm install --prefix ./packages/types-shared/
-
-# Rust workspace lockfile will be generated by CI
-make verify-bridge     # Verify bridge contracts between crates/packages  
+git clone <repo-url>
+cd NexxusFlow
+make bootstrap
+cp labs/path-1-sovereign-foundations/chapter-jwt-auth/.env.example \
+  labs/path-1-sovereign-foundations/chapter-jwt-auth/.env
 ```
 
-### Running Lab Environment:
+`make bootstrap` installs the checked-in Node dependencies for the shared
+TypeScript package. Rust and Go dependencies are resolved by their native tools
+when you run the validation targets below. The JWT lab now requires explicit
+environment configuration via `labs/path-1-sovereign-foundations/chapter-jwt-auth/.env`.
+
+## Validation Commands
+
+```bash
+make fmt-check
+make lint
+make test
+make smoke-jwt-lab
+make smoke-jwt-staging
+make smoke-jwt-staging-kind
+make docker-build-jwt-lab
+make walkthrough-jwt-lab
+```
+
+Target summary:
+
+- `make lint` runs Rust Clippy, TypeScript lint, and Go tests for the JWT lab.
+- `make test` runs Rust tests, TypeScript build and lint, and Go tests.
+- `make smoke-jwt-lab` validates the JWT lab Compose configuration.
+- `make smoke-jwt-staging` validates the staged Kubernetes manifests.
+- `make smoke-jwt-staging-kind` probes the live `kind`-based staging endpoints.
+- `make docker-build-jwt-lab` builds the JWT backend image locally using the hardened lab Dockerfile.
+- `make walkthrough-jwt-lab` runs the documented local JWT lab user journey end to end.
+
+## JWT Lab Quick Start
+
 ```bash
 cd labs/path-1-sovereign-foundations/chapter-jwt-auth
-docker compose up -d --build    # Start Docker Compose stack for lab session
+cp .env.example .env
+docker compose up -d --build
+curl http://localhost:8080/health
+curl http://localhost:8080/readyz
+curl http://localhost:8080/auth \
+  -H "Content-Type: application/json" \
+  -d '{"user_id":"test-user","role":"admin"}'
+curl http://localhost:8080/narrative/apply \
+  -H "Content-Type: application/json" \
+  -d '{"type":"inject_latency","delay_us":250000}'
+curl http://localhost:8080/state
+curl http://localhost:8080/metrics
+curl http://localhost:8080/metrics/snapshot
+curl -X POST http://localhost:8080/alerts -H "Content-Type: application/json" -d '{"status":"firing","alerts":[]}'
+open http://localhost:9090
+docker compose down
 ```
 
----
+The current implementation returns a signed HS256 JWT with issuer, audience,
+subject, role, and expiration claims. It is still a lab service, not a full
+production auth system. The runtime mutation and state contracts are mirrored in
+`packages/types-shared/src/runtime-contract.ts`. The `/metrics` endpoint now
+serves Prometheus exposition format, while `/metrics/snapshot` keeps the JSON
+view used by tests and debugging.
 
-## Development Commands
-```bash
-# Lint all codebases (Rust + TypeScript)  
-make lint              # clippy eslint format-check  
+## Production Boundaries
 
-# Test both crates and packages 
-make test              # cargo test && npm test    
+Before promoting any component beyond local lab use, complete the post-Sprint 2
+work in `docs/production-scope.md`, especially:
 
-# Run micro-benchmark suite for datapath hot path performance
-make bench             # cargo bench --workspace --all-targets
+- strict secret management
+- integrated observability
+- end-to-end tests across Rust, Go, and TypeScript surfaces
+- image signing, promotion, and centralized security operations
 
-# Start lab development environment with hot-reload
-make dev               # docker-compose up --build --detach  
+The staged deployment substrate for the current JWT lab slice lives in
+`deploy/staging/jwt-auth-lab`, and the staged rollout procedure lives in
+`docs/jwt-lab-staging-deploy.md`.
 
-# Tear down stacks gracefully  
-make down              
-```
+The promoted-image overlay for staged clusters lives in
+`deploy/staging/jwt-auth-lab-ghcr`.
 
----
+For local cluster exercise evidence, use `make exercise-jwt-staging-kind`,
+`make smoke-jwt-staging-kind`, and `make rehearse-jwt-staging-rollback` when
+`kind` is available.
 
-## Technology Stack Summary:
-| **Layer** | **Technology Stack**                                      |
-|-----------|------------------------------------------------------------|
-| Frontend  | React + Tailwind (Dark/Gruvbox theme)                    |
-| Backend API| Go or Node.ts-rs adapter                                   |
-| Control Plane | SQLite + WAL mode, JWT/OAuth2 auth                       |
-| Data Plane   | AF_XDP ring processing (`afxdp`, `wire` crates), crypto examples  |
-| Observability | Prometheus + Grafana dashboards with WebSocket updates     |
+For the current readiness view, also see:
 
----
-
-## Key Features:
-- **Zero-Copy Hot Path**: AF_XDP datapath avoids heap allocations; use UMEM rings for packet buffers.  
-- **Lock-Free Concurrency**: Crossbeam atomics, `std::sync::atomic` for counter/stats in data path.  
-- **Progressive Disclosure**: Simple Mode disables advanced features (MCR, eBPF).  
-- **Sovereignty First**: SQLite + local Docker Compose as default; no cloud dependency.  
-
----
+- `docs/architecture-and-ownership.md`
+- `docs/repository-status-matrix.md`
+- `docs/repository-backlog.md`
+- `docs/staging-readiness-review.md`
 
 ## License
-This project is licensed under AGPL-3.0 - see the [LICENSE](LICENSE) file for details.
+
+This project is licensed under AGPL-3.0. See `LICENSE`.

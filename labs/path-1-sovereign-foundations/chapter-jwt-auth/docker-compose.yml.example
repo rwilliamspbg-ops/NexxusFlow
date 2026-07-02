@@ -1,24 +1,31 @@
 # JWT Auth Stack Deployment - Docker Compose example for NexusFlow lab chapter
 
-version: "3.9"  
-services:    
-  jwt-auth-backend:      
-    build: ../app/         
-    user: "${UID}:${GID}"          # User namespace isolation via seccomp      
-    security_opt:                  # Security constraints (rootless Docker)       
-      - no-new-privileges:true     
-      - apparmor=unconfined        # Consider enabling profile later
-    cap_drop:                      
-      - ALL                         # Drop all capabilities; add back selectively    
-    volumes:                        
-      - ./data:/var/lib/app-data   # Local data isolation per user namespace      
-    environment:                    
-      - JWT_SECRET=${JWT_SECRET}   
-    depends_on:                     
-      - jwt-auth-db         
+services:
+  jwt-auth-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    user: "${UID:-1000}:${GID:-1000}"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    environment:
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - JWT_ISSUER=${JWT_ISSUER:-nexusflow-jwt-lab}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-nexusflow-lab-clients}
+      - JWT_TTL=${JWT_TTL:-15m}
+      - PORT=8080
 
-  jwt-auth-db:          
-    image: postgres:15-alpine
-    environment:              
-      - POSTGRES_USER=labuser  
-      - POSTGRES_PASSWORD=labpassword  
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    read_only: true
+    tmpfs:
+      - /tmp
+    user: "65534:65534"
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus

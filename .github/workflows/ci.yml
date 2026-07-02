@@ -2,6 +2,9 @@
 
 name: CI Pipeline
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main, develop]
@@ -41,7 +44,7 @@ jobs:
         run: cargo test --workspace --all-targets
 
   npm-lint-test-build:
-    name: TypeScript — Lint and Type-check
+    name: TypeScript — Build and Lint
     runs-on: ubuntu-22.04
 
     steps:
@@ -57,8 +60,153 @@ jobs:
       - name: Install types-shared dependencies
         run: npm ci --prefix packages/types-shared
 
-      - name: Type-check types-shared
-        run: npm run build --prefix packages/types-shared || echo "Build skipped (no tsconfig yet)"
+      - name: Build types-shared
+        run: npm run build --prefix packages/types-shared
 
       - name: Lint types-shared
-        run: npm run lint --prefix packages/types-shared || echo "Lint skipped (no eslint config yet)"
+        run: npm run lint --prefix packages/types-shared
+
+  jwt-auth-lab-smoke:
+    name: JWT Lab — Go Test and Compose Smoke
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Run Go tests
+        working-directory: labs/path-1-sovereign-foundations/chapter-jwt-auth
+        run: go test ./...
+
+      - name: Validate Docker Compose configuration
+        run: docker compose --env-file labs/path-1-sovereign-foundations/chapter-jwt-auth/.env.example -f labs/path-1-sovereign-foundations/chapter-jwt-auth/docker-compose.yml config > /dev/null
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.31.0
+
+      - name: Validate staging manifests
+        run: kubectl kustomize deploy/staging/jwt-auth-lab > /dev/null
+
+      - name: Validate registry overlay manifests
+        run: kubectl kustomize deploy/staging/jwt-auth-lab-ghcr > /dev/null
+
+  jwt-auth-image-security:
+    name: JWT Lab — Image Build, SBOM, and Scan
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: labs/path-1-sovereign-foundations/chapter-jwt-auth
+          file: labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend
+          load: true
+          push: false
+          tags: nexusflow/jwt-auth-backend:ci
+
+      - name: Generate image SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: nexusflow/jwt-auth-backend:ci
+          format: spdx-json
+          output-file: jwt-auth-backend.spdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: jwt-auth-backend-sbom
+          path: jwt-auth-backend.spdx.json
+
+      - name: Run Trivy image scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: nexusflow/jwt-auth-backend:ci
+          format: sarif
+          output: trivy-image-results.sarif
+          severity: HIGH,CRITICAL
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-image-results.sarif
+
+  jwt-auth-image-release:
+    name: JWT Lab — Publish, Sign, and Attest Image
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/nexusflow-jwt-auth-backend
+          tags: |
+            type=sha
+            type=raw,value=main
+
+      - name: Build and push signed image candidate
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: labs/path-1-sovereign-foundations/chapter-jwt-auth
+          file: labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.6.0
+
+      - name: Sign image with keyless Sigstore
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: cosign sign --yes ghcr.io/${{ github.repository_owner }}/nexusflow-jwt-auth-backend@${{ steps.build.outputs.digest }}
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ghcr.io/${{ github.repository_owner }}/nexusflow-jwt-auth-backend
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Verify signed image
+        env:
+          COSIGN_EXPERIMENTAL: "true"
+        run: |
+          cosign verify \
+            --certificate-identity-regexp "https://github.com/${{ github.repository }}.*" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            ghcr.io/${{ github.repository_owner }}/nexusflow-jwt-auth-backend@${{ steps.build.outputs.digest }}

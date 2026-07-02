@@ -1,15 +1,20 @@
-# Prometheus Recording Rules for JWT Auth Stack Metrics - NexusFlow Observability Integration
+# Example Prometheus recording rules for the JWT lab.
 
-group:    
-  name: jwt_auth_rules      
-    rules:        
-      - record: 'jwt_auth_requests_total'         
-        expr: |          
-          # Count authentication requests (zero-copy counters via prometheus crate)           
-          rate(http_requests_total[5m])
-      
-        rule: 'jwt_auth_latency_ms_bucket'              
-        expr: sum(rate(afxdp_ring_producer_counter[10s])) * 1e6 / avg(avg_datapath_latencies_1us_bin)          
-      - record: 'nexusflow_simple_mode_active'       
-        expr: label_replace(jwt_auth_requests_total, "mode", "", "simpleModeHint", "(.*)")
+groups:
+  - name: jwt_auth_lab
+    rules:
+      - record: jwt_lab_auth_success_ratio
+        expr: |
+          sum(jwt_lab_auth_success_total)
+          /
+          clamp_min(sum(jwt_lab_auth_requests_total), 1)
+
+      - alert: JWTLabAuthFailuresDetected
+        expr: increase(jwt_lab_auth_failure_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: JWT lab auth failures detected
+          description: The JWT lab backend has served one or more failed auth requests in the last five minutes.
         

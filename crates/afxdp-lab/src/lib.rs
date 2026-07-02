@@ -9,7 +9,7 @@ use std::collections::HashSet;
 use std::mem::size_of;
 
 /// AF_XDP Ring Buffer Handler for zero-copy packet processing
-pub struct AF_XDPLabHandler {
+pub struct AfXdpLabHandler {
     /// Ring buffer placeholder — populated when `afxdp-hardware` feature is enabled.
     /// Uses `Option<Vec<u8>>` as a stand-in UMEM pool for the simulated path.
     pub ring_buffer: Option<Vec<u8>>,
@@ -19,7 +19,7 @@ pub struct AF_XDPLabHandler {
     pub disabled_channels: HashSet<String>,
 }
 
-impl AF_XDPLabHandler {
+impl AfXdpLabHandler {
     /// Create new handler with hardware detection matrix (fallback if no NIC)
     pub fn new() -> Self {
         // Detect hardware via feature flag — emit warning metric in simulated mode
@@ -57,7 +57,7 @@ impl AF_XDPLabHandler {
     }
 }
 
-impl Default for AF_XDPLabHandler {
+impl Default for AfXdpLabHandler {
     fn default() -> Self {
         Self::new()
     }
@@ -76,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_af_xdp_handler_creation() {
-        let handler = AF_XDPLabHandler::new();
+        let handler = AfXdpLabHandler::new();
         // In simulated mode (default feature), ring_buffer is None
         assert!(handler.ring_buffer.is_none());
         println!("✅ afxdp-lab: Handler created successfully (simulated UMEM pool)");
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_latency_injection() {
-        let mut handler = AF_XDPLabHandler::new();
+        let mut handler = AfXdpLabHandler::new();
         handler.latency_injected_ms = Some(100);
         assert_eq!(handler.latency_injected_ms, Some(100));
         println!("✅ afxdp-lab: Latency injection field mutated correctly");
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_handle_packet_simulated() {
-        let handler = AF_XDPLabHandler::new();
+        let handler = AfXdpLabHandler::new();
         let packet = vec![0u8; 64];
         let result = handler.handle_packet(&packet);
         assert!(result.is_ok(), "Simulated packet handling should succeed");
@@ -101,7 +101,7 @@ mod tests {
 
     #[test]
     fn test_handle_packet_empty_is_ok_in_simulated_mode() {
-        let handler = AF_XDPLabHandler::new();
+        let handler = AfXdpLabHandler::new();
         // Empty packet is still OK in simulated mode (hardware path not active)
         let result = handler.handle_packet(&[]);
         assert!(result.is_ok());

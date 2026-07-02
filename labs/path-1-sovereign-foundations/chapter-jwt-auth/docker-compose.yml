@@ -13,14 +13,18 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
     volumes:
       - ./data:/var/lib/app-data
     environment:
-      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
+      - JWT_ISSUER=${JWT_ISSUER:-nexusflow-jwt-lab}
+      - JWT_AUDIENCE=${JWT_AUDIENCE:-nexusflow-lab-clients}
+      - JWT_TTL=${JWT_TTL:-15m}
       - PORT=8080
-    depends_on:
-      jwt-auth-db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
       interval: 30s
@@ -28,21 +32,26 @@ services:
       retries: 3
       start_period: 5s
 
-  # PostgreSQL for session / user storage
-  jwt-auth-db:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=labuser
-      - POSTGRES_DB=labdb
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dev-password}
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - "9090:9090"
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    user: "65534:65534"
     volumes:
-      - db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U labuser -d labdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml:ro
+      - prometheus-data:/prometheus
+    depends_on:
+      jwt-auth-backend:
+        condition: service_started
 
 volumes:
-  db-data:
-    name: jwt-auth-db-data
+  prometheus-data:
+    name: jwt-auth-prometheus-data

@@ -1,0 +1,17 @@
+groups:
+  - name: jwt_auth_lab
+    rules:
+      - record: jwt_lab_auth_success_ratio
+        expr: |
+          sum(jwt_lab_auth_success_total)
+          /
+          clamp_min(sum(jwt_lab_auth_requests_total), 1)
+
+      - alert: JWTLabAuthFailuresDetected
+        expr: increase(jwt_lab_auth_failure_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: JWT lab auth failures detected
+          description: The JWT lab backend has served one or more failed auth requests in the last five minutes.

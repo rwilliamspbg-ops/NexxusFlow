@@ -1,12 +1,16 @@
-# NexusFlow Monorepo — Development Makefile
+# NexusFlow — Development Makefile
 # Run `make help` to see all available targets.
 
-.PHONY: help dev up down lint clippy fmt fmt-check test bench clean
+.PHONY: help bootstrap dev up down lint lint-ts clippy fmt fmt-check test test-rust test-ts test-go smoke-jwt-lab smoke-jwt-staging smoke-jwt-staging-kind walkthrough-jwt-lab exercise-jwt-staging-kind exercise-jwt-staging-kind-eso cleanup-jwt-staging-kind rehearse-jwt-staging-rollback docker-build-jwt-lab bench clean verify-bridge
 
 # ── Meta ──────────────────────────────────────────────────────────────────────
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+
+# ── Bootstrap ────────────────────────────────────────────────────────────────
+bootstrap: ## Install local package dependencies required for TypeScript checks
+	npm ci --prefix packages/types-shared
 
 # ── Lab environment ───────────────────────────────────────────────────────────
 dev: ## Start JWT-auth lab stack with hot-reload (docker compose watch)
@@ -29,7 +33,7 @@ fmt: ## Auto-format all Rust source files
 fmt-check: ## Check Rust formatting without writing (CI gate)
 	cargo fmt --all -- --check
 
-test: test-rust test-ts ## Run all tests (Rust + TypeScript)
+test: test-rust test-ts test-go ## Run all tests (Rust + TypeScript + Go)
 
 test-rust: ## Run cargo tests across the workspace
 	cargo test --workspace --all-targets
@@ -38,11 +42,47 @@ bench: ## Run microbenchmark suite for data-plane hot-path validation
 	cargo bench --workspace --all-targets
 
 # ── TypeScript / npm ──────────────────────────────────────────────────────────
-test-ts: ## Run npm test for packages/types-shared
-	npm run type-check --prefix packages/types-shared
+test-ts: ## Build and lint packages/types-shared
+	npm test --prefix packages/types-shared
 
-lint: clippy ## Run all linters (Rust clippy; TS lint via CI)
-	npm run lint --prefix packages/types-shared || echo "TS lint skipped (no eslint config yet)"
+lint-ts: ## Run eslint for packages/types-shared
+	npm run lint --prefix packages/types-shared
+
+# ── Go / lab validation ───────────────────────────────────────────────────────
+test-go: ## Run Go tests for the JWT auth lab
+	cd labs/path-1-sovereign-foundations/chapter-jwt-auth && go test ./...
+
+smoke-jwt-lab: ## Validate the JWT auth lab Docker Compose configuration
+	docker compose --env-file labs/path-1-sovereign-foundations/chapter-jwt-auth/.env.example -f labs/path-1-sovereign-foundations/chapter-jwt-auth/docker-compose.yml config > /dev/null
+
+smoke-jwt-staging: ## Validate the staged Kubernetes manifests for the JWT auth lab
+	kubectl kustomize deploy/staging/jwt-auth-lab > /dev/null
+	kubectl kustomize deploy/staging/jwt-auth-lab-ghcr > /dev/null
+	kubectl kustomize deploy/staging/jwt-auth-lab-kind > /dev/null
+	kubectl kustomize deploy/staging/jwt-auth-lab-kind-eso > /dev/null
+
+smoke-jwt-staging-kind: ## Probe the live kind-based staging deployment endpoints
+	bash scripts/smoke-jwt-staging-kind.sh
+
+walkthrough-jwt-lab: ## Run the local JWT lab walkthrough end to end
+	bash scripts/walkthrough-jwt-lab.sh
+
+exercise-jwt-staging-kind: ## Exercise the staged JWT lab on a local kind cluster
+	bash scripts/exercise-jwt-staging-kind.sh
+
+exercise-jwt-staging-kind-eso: ## Exercise the staged JWT lab on kind with External Secrets Operator
+	bash scripts/exercise-jwt-staging-kind-eso.sh
+
+cleanup-jwt-staging-kind: ## Delete the local kind-based staging cluster and resources
+	bash scripts/cleanup-jwt-staging-kind.sh
+
+rehearse-jwt-staging-rollback: ## Deploy, smoke test, and roll back the kind-based staging environment
+	bash scripts/rehearse-jwt-staging-rollback.sh
+
+docker-build-jwt-lab: ## Build the JWT auth backend image locally
+	docker build -f labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend -t nexusflow/jwt-auth-backend:local labs/path-1-sovereign-foundations/chapter-jwt-auth
+
+lint: clippy lint-ts test-go ## Run all enforceable code-quality checks
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 clean: ## Remove Rust build artefacts

@@ -42,7 +42,7 @@ export const labChapterSchema = z.object({
 export type LabChapter = z.infer<typeof labChapterSchema>;
 
 // ── Usage example (compile-time type checked) ────────────────────────────────
-const _jwtAuthChapterExample: LabChapter = {
+export const jwtAuthChapterExample: LabChapter = {
   id: "path-1-sovereign-foundations.chapter-jwt-auth",
   title: "JWT Authentication Stack Deployment",
   description: "Learn to secure your backend services with JSON Web Tokens.",

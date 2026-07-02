@@ -13,7 +13,7 @@ pub enum FailureCause {
 }
 
 /// Lab State Structure — holds all mutable runtime state for a running lab session.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct LabState {
     /// Latency injection value in milliseconds (set by `InjectLatency` decision payload)
     pub latency_injected_ms: Option<u64>,
@@ -21,16 +21,6 @@ pub struct LabState {
     pub network_partitions: Vec<String>,
     /// Node failures: container ID → failure cause
     pub node_failures: HashMap<String, FailureCause>,
-}
-
-impl Default for LabState {
-    fn default() -> Self {
-        Self {
-            latency_injected_ms: None,
-            network_partitions: Vec::new(),
-            node_failures: HashMap::new(),
-        }
-    }
 }
 
 impl LabState {

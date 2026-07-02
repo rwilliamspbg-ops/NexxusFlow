@@ -2,7 +2,7 @@
 //!
 //! Uses a lock-free MPMC channel (crossbeam) to avoid core stalling under high load.
 
-use crossbeam_channel::{bounded, Receiver, Sender};
+use crossbeam_channel::{bounded, Receiver, Sender, TrySendError};
 use std::collections::HashMap;
 
 /// Packet stat structure — fixed-size fields, HashMap only for optional breakdowns.
@@ -45,8 +45,8 @@ impl LockFreeStatsRing {
     /// Enqueue a packet stat without locking.
     ///
     /// Returns an error if the channel is full (back-pressure signal).
-    pub fn record_packet(&self, stat: PacketStat) -> Result<(), crossbeam_channel::SendError<PacketStat>> {
-        self.tx.send(stat)
+    pub fn record_packet(&self, stat: PacketStat) -> Result<(), TrySendError<PacketStat>> {
+        self.tx.try_send(stat)
     }
 
     /// Drain all pending stats — used by the Prometheus collector on each scrape.
@@ -78,7 +78,8 @@ mod tests {
     fn test_record_and_drain() {
         let ring = LockFreeStatsRing::new(16);
         let stat = PacketStat::new(128, 4_500);
-        ring.record_packet(stat).expect("channel should not be full");
+        ring.record_packet(stat)
+            .expect("channel should not be full");
 
         let drained = ring.drain();
         assert_eq!(drained.len(), 1);
@@ -94,7 +95,10 @@ mod tests {
         ring.record_packet(PacketStat::new(2, 2)).unwrap();
         // Third send should fail — channel is full
         let result = ring.record_packet(PacketStat::new(3, 3));
-        assert!(result.is_err(), "Channel should signal back-pressure when full");
+        assert!(
+            result.is_err(),
+            "Channel should signal back-pressure when full"
+        );
         println!("✅ observability-core: back-pressure signalled correctly");
     }
 
