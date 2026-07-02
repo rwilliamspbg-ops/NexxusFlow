@@ -11,7 +11,7 @@ NexusFlow. It is a runnable demo used for local learning and CI smoke checks.
 - a JSON metrics snapshot endpoint at `/metrics/snapshot`
 - an alert webhook endpoint at `/alerts`
 - a Docker Compose stack for a stateless JWT lab runtime
-- a Prometheus service that scrapes the backend on port 9090
+- a Prometheus service with a writable local TSDB volume that scrapes the backend on port 9090
 - a hardened Dockerfile and build context for local image builds
 - a staged Kubernetes deployment target under `deploy/staging/jwt-auth-lab`
 - example provisioning files for Prometheus and Grafana
@@ -52,6 +52,7 @@ make test-go
 make smoke-jwt-lab
 make smoke-jwt-staging
 make docker-build-jwt-lab
+make walkthrough-jwt-lab
 ```
 
 From this directory directly:
@@ -60,6 +61,12 @@ From this directory directly:
 cp .env.example .env
 go test ./...
 docker compose --env-file .env config
+```
+
+From the repository root, you can also run the full local walkthrough with:
+
+```bash
+make walkthrough-jwt-lab
 ```
 
 ## Run the Lab

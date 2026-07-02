@@ -1,7 +1,7 @@
 # NexusFlow — Development Makefile
 # Run `make help` to see all available targets.
 
-.PHONY: help bootstrap dev up down lint lint-ts clippy fmt fmt-check test test-rust test-ts test-go smoke-jwt-lab smoke-jwt-staging docker-build-jwt-lab bench clean verify-bridge
+.PHONY: help bootstrap dev up down lint lint-ts clippy fmt fmt-check test test-rust test-ts test-go smoke-jwt-lab smoke-jwt-staging smoke-jwt-staging-kind walkthrough-jwt-lab exercise-jwt-staging-kind exercise-jwt-staging-kind-eso cleanup-jwt-staging-kind rehearse-jwt-staging-rollback docker-build-jwt-lab bench clean verify-bridge
 
 # ── Meta ──────────────────────────────────────────────────────────────────────
 help: ## Show this help message
@@ -58,6 +58,26 @@ smoke-jwt-lab: ## Validate the JWT auth lab Docker Compose configuration
 smoke-jwt-staging: ## Validate the staged Kubernetes manifests for the JWT auth lab
 	kubectl kustomize deploy/staging/jwt-auth-lab > /dev/null
 	kubectl kustomize deploy/staging/jwt-auth-lab-ghcr > /dev/null
+	kubectl kustomize deploy/staging/jwt-auth-lab-kind > /dev/null
+	kubectl kustomize deploy/staging/jwt-auth-lab-kind-eso > /dev/null
+
+smoke-jwt-staging-kind: ## Probe the live kind-based staging deployment endpoints
+	bash scripts/smoke-jwt-staging-kind.sh
+
+walkthrough-jwt-lab: ## Run the local JWT lab walkthrough end to end
+	bash scripts/walkthrough-jwt-lab.sh
+
+exercise-jwt-staging-kind: ## Exercise the staged JWT lab on a local kind cluster
+	bash scripts/exercise-jwt-staging-kind.sh
+
+exercise-jwt-staging-kind-eso: ## Exercise the staged JWT lab on kind with External Secrets Operator
+	bash scripts/exercise-jwt-staging-kind-eso.sh
+
+cleanup-jwt-staging-kind: ## Delete the local kind-based staging cluster and resources
+	bash scripts/cleanup-jwt-staging-kind.sh
+
+rehearse-jwt-staging-rollback: ## Deploy, smoke test, and roll back the kind-based staging environment
+	bash scripts/rehearse-jwt-staging-rollback.sh
 
 docker-build-jwt-lab: ## Build the JWT auth backend image locally
 	docker build -f labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend -t nexusflow/jwt-auth-backend:local labs/path-1-sovereign-foundations/chapter-jwt-auth

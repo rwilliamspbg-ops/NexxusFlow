@@ -44,8 +44,8 @@ fn main() {
                     break;
                 }
                 let total_bytes: usize = batch.iter().map(|s| s.packet_size).sum();
-                let avg_ns: u64 = batch.iter().map(|s| s.processing_time_ns).sum::<u64>()
-                    / batch.len() as u64;
+                let avg_ns: u64 =
+                    batch.iter().map(|s| s.processing_time_ns).sum::<u64>() / batch.len() as u64;
                 println!(
                     "📊 Scraped {} stats — total_bytes={} avg_ns={}",
                     batch.len(),

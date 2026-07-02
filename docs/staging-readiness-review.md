@@ -25,13 +25,14 @@ This document is the current pre-staging review for the repository.
 - staged ExternalSecret manifest for runtime secret injection
 - staged Alertmanager and Grafana manifests
 - CI publish/sign/attest/verify workflow on `main`
+- local `kind` exercise path for staged runtime, Prometheus, Alertmanager, and Grafana
+- local rollback rehearsal path for the `kind` staging environment
+- local `kind` exercise path for the real External Secrets-backed secret flow
 
 ## Not Ready for Staging
 
-- no exercised managed-secret path in a real cluster
 - no exercised signed-image promotion from CI into the staged target
-- no exercised Grafana/Alertmanager stack in a real cluster
-- no exercised rollback beyond local guidance
+- no rollback evidence beyond the local `kind` rehearsal path
 
 ## Recommendation
 
@@ -41,6 +42,11 @@ The repo is suitable for continued internal development and repeated local/CI
 validation, but it still lacks the minimum controls expected for a staged
 service environment because the newly added staged controls are not yet backed
 by exercise evidence.
+
+Note:
+
+- the `kind` exercise path now proves both the secret-bypass overlay and the External Secrets-backed path locally
+- the remaining evidence gap is now specifically around CI-published signed images and non-local staged evidence
 
 ## Exit Criteria for This Review
 

@@ -24,7 +24,8 @@ services:
     image: prom/prometheus:v2.53.0
     read_only: true
     tmpfs:
-      - /prometheus
       - /tmp
+    user: "65534:65534"
     command:
       - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus

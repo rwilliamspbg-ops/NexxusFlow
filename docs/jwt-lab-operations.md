@@ -10,6 +10,10 @@ This runbook covers the currently implemented JWT lab runtime in
 - Alertmanager UI/API: `http://localhost:9093`
 - Grafana UI: `http://localhost:3000`
 
+Local persisted volume surfaces:
+
+- Prometheus TSDB volume: `jwt-auth-prometheus-data`
+
 ## Start and Stop
 
 ```bash

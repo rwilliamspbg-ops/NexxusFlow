@@ -34,8 +34,8 @@ data:
               clamp_min(sum(jwt_lab_auth_requests_total), 1)
 
           - alert: JWTLabAuthFailuresDetected
-            expr: increase(jwt_lab_auth_failure_total[5m]) > 0
-            for: 1m
+            expr: sum(jwt_lab_auth_failure_total) > 0
+            for: 15s
             labels:
               severity: warning
             annotations:

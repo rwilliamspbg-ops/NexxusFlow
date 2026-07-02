@@ -45,7 +45,10 @@ impl LockFreeStatsRing {
     /// Enqueue a packet stat without locking.
     ///
     /// Returns an error if the channel is full (back-pressure signal).
-    pub fn record_packet(&self, stat: PacketStat) -> Result<(), crossbeam_channel::SendError<PacketStat>> {
+    pub fn record_packet(
+        &self,
+        stat: PacketStat,
+    ) -> Result<(), crossbeam_channel::SendError<PacketStat>> {
         self.tx.send(stat)
     }
 
@@ -78,7 +81,8 @@ mod tests {
     fn test_record_and_drain() {
         let ring = LockFreeStatsRing::new(16);
         let stat = PacketStat::new(128, 4_500);
-        ring.record_packet(stat).expect("channel should not be full");
+        ring.record_packet(stat)
+            .expect("channel should not be full");
 
         let drained = ring.drain();
         assert_eq!(drained.len(), 1);

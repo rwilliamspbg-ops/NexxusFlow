@@ -81,7 +81,9 @@ make lint
 make test
 make smoke-jwt-lab
 make smoke-jwt-staging
+make smoke-jwt-staging-kind
 make docker-build-jwt-lab
+make walkthrough-jwt-lab
 ```
 
 Target summary:
@@ -90,7 +92,9 @@ Target summary:
 - `make test` runs Rust tests, TypeScript build and lint, and Go tests.
 - `make smoke-jwt-lab` validates the JWT lab Compose configuration.
 - `make smoke-jwt-staging` validates the staged Kubernetes manifests.
+- `make smoke-jwt-staging-kind` probes the live `kind`-based staging endpoints.
 - `make docker-build-jwt-lab` builds the JWT backend image locally using the hardened lab Dockerfile.
+- `make walkthrough-jwt-lab` runs the documented local JWT lab user journey end to end.
 
 ## JWT Lab Quick Start
 
@@ -137,6 +141,10 @@ The staged deployment substrate for the current JWT lab slice lives in
 
 The promoted-image overlay for staged clusters lives in
 `deploy/staging/jwt-auth-lab-ghcr`.
+
+For local cluster exercise evidence, use `make exercise-jwt-staging-kind`,
+`make smoke-jwt-staging-kind`, and `make rehearse-jwt-staging-rollback` when
+`kind` is available.
 
 For the current readiness view, also see:
 

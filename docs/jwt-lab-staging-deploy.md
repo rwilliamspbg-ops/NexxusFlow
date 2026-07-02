@@ -17,6 +17,7 @@ cluster such as `kind` or another development Kubernetes environment.
 
 - a working Kubernetes cluster context
 - `kubectl` available locally
+- `kind` available locally if you want to use the automated local cluster exercise
 - a built backend image:
 
 ```bash
@@ -28,6 +29,25 @@ If you use `kind`, load the image into the cluster:
 ```bash
 kind load docker-image nexusflow/jwt-auth-backend:local --name <cluster-name>
 ```
+
+Automated local cluster exercise:
+
+```bash
+make exercise-jwt-staging-kind
+make smoke-jwt-staging-kind
+make rehearse-jwt-staging-rollback
+```
+
+This uses the `deploy/staging/jwt-auth-lab-kind` overlay, which replaces the
+`ExternalSecret` with a local development `Secret` so the staged topology can be
+exercised without a live secret manager.
+
+Target meanings:
+
+- `make exercise-jwt-staging-kind`: create or reuse the cluster, build/load the image, and deploy the staged stack
+- `make smoke-jwt-staging-kind`: probe the live JWT backend, Prometheus, Alertmanager, and Grafana endpoints through port-forwards
+- `make rehearse-jwt-staging-rollback`: deploy, smoke test, and delete the staged environment
+- `make cleanup-jwt-staging-kind`: remove the local kind cluster after the exercise is complete
 
 ## Managed Secret Injection
 
@@ -89,6 +109,12 @@ open http://localhost:3000
 ```bash
 kubectl delete -k deploy/staging/jwt-auth-lab
 kubectl delete secret jwt-auth-runtime-secrets -n nexusflow-staging
+```
+
+For the local `kind` exercise path, use:
+
+```bash
+make cleanup-jwt-staging-kind
 ```
 
 ## Current Limits
