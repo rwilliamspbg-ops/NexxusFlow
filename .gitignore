@@ -4,8 +4,6 @@
 /target/
 **/*.rs.bk
 *.pdb
-# Only commit Cargo.lock for binaries (not libraries)
-# Cargo.lock
 
 # Node / npm
 node_modules/
