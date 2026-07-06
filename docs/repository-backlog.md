@@ -67,12 +67,6 @@ criteria.
 
 ## Medium Priority
 
-### MP-01 Contract Compatibility Tests
-
-- Scope: add explicit compatibility tests between Go runtime payloads and TypeScript schemas
-- Acceptance criteria:
-  - one automated check validates runtime JSON against shared schemas
-
 ### MP-02 Ops Runbook Expansion
 
 - Scope: turn the current lab operations notes into incident-oriented runbooks
@@ -89,6 +83,12 @@ criteria.
 
 - the JWT lab now has a checked-in staged deployment target under `deploy/staging/jwt-auth-lab`
 - the unused Postgres placeholder dependency has been removed from the JWT lab runtime stack
+
+## Resolved in Sprint 11 (Current)
+
+- **MP-01 Contract Compatibility Tests**: added automated Zod validation script and Go contract test
+- **Rust Hardening**: generated and committed `Cargo.lock`; consolidated narrative logic in `narrative-engine` crate
+- **Go Quality Enforcement**: added `fmt-go`, `lint-go` to Makefile and CI; fixed Go state initialization to ensure contract compatibility
 
 ## Implemented in Sprint 8-10, Pending Exercise Evidence
 
