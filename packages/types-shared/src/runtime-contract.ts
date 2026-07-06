@@ -23,6 +23,7 @@ export const runtimeMetricsSnapshotSchema = z.object({
   alerts_received_total: z.number().int().nonnegative(),
   narrative_mutations_total: z.number().int().nonnegative(),
   narrative_mutation_failures_total: z.number().int().nonnegative(),
+  rate_limit_rejections_total: z.number().int().nonnegative(),
   state_reads_total: z.number().int().nonnegative(),
   metrics_reads_total: z.number().int().nonnegative(),
   last_auth_processing_ns: z.number().int().nonnegative(),

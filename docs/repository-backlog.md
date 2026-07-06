@@ -8,9 +8,9 @@ criteria.
 
 ### RL-01 Managed Secret Injection
 
-- Scope: replace `.env`-style runtime secret injection with a managed source for staging and production
+- Scope: replace \`.env\`-style runtime secret injection with a managed source for staging and production
 - Acceptance criteria:
-  - JWT runtime starts without local `.env` files in staged environments
+  - JWT runtime starts without local \`.env\` files in staged environments
   - secret rotation path is documented and tested
   - no secret defaults remain in deployment assets
   - Current repo status: manifests and docs are in place; cluster exercise still pending
@@ -30,7 +30,7 @@ criteria.
   - CI emits a signed image or attested artifact
   - verification steps are documented
   - promotion policy requires successful verification
-  - Current repo status: workflow and verification steps are checked in; GitHub Actions execution on `main` still needs evidence
+  - Current repo status: workflow and verification steps are checked in; GitHub Actions execution on \`main\` still needs evidence
 
 ### RL-04 Centralized Observability
 
@@ -57,14 +57,6 @@ criteria.
   - decision recorded in architecture docs
   - one follow-up implementation issue opened per chosen direction
 
-### HP-03 Rate Limiting and Abuse Controls
-
-- Scope: add basic protection around auth and mutation endpoints
-- Acceptance criteria:
-  - request throttling behavior exists
-  - failure metrics reflect rejected requests
-  - tests cover the throttle path
-
 ## Medium Priority
 
 ### MP-02 Ops Runbook Expansion
@@ -81,17 +73,18 @@ criteria.
 
 ## Resolved in Sprint 7
 
-- the JWT lab now has a checked-in staged deployment target under `deploy/staging/jwt-auth-lab`
+- the JWT lab now has a checked-in staged deployment target under \`deploy/staging/jwt-auth-lab\`
 - the unused Postgres placeholder dependency has been removed from the JWT lab runtime stack
 
 ## Resolved in Sprint 11 (Current)
 
+- **HP-03 Rate Limiting and Abuse Controls**: added token bucket rate limiter to auth and mutation endpoints
 - **MP-01 Contract Compatibility Tests**: added automated Zod validation script and Go contract test
-- **Rust Hardening**: generated and committed `Cargo.lock`; consolidated narrative logic in `narrative-engine` crate
-- **Go Quality Enforcement**: added `fmt-go`, `lint-go` to Makefile and CI; fixed Go state initialization to ensure contract compatibility
+- **Rust Hardening**: generated and committed \`Cargo.lock\`; consolidated narrative logic in \`narrative-engine\` crate
+- **Go Quality Enforcement**: added \`fmt-go\`, \`lint-go\` to Makefile and CI; fixed Go state initialization to ensure contract compatibility
 
 ## Implemented in Sprint 8-10, Pending Exercise Evidence
 
-- managed secret injection path via `ExternalSecret`
+- managed secret injection path via \`ExternalSecret\`
 - GHCR publish/sign/attest/verify workflow
 - staged centralized observability stack with Prometheus, Alertmanager, and Grafana

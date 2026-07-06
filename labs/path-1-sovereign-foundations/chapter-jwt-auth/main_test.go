@@ -377,3 +377,40 @@ func TestMainRequiresSecretInEnvironmentContract(t *testing.T) {
 		t.Fatal("expected config load to fail without JWT_SECRET")
 	}
 }
+
+func TestRateLimiting(t *testing.T) {
+	handler := NewJWTAuthHandler(testConfig())
+	// Default burst is 5. Let's consume all tokens.
+	for i := 0; i < 5; i++ {
+		req := httptest.NewRequest(
+			http.MethodPost,
+			"/auth",
+			strings.NewReader(`{"user_id":"alice","role":"admin"}`),
+		)
+		res := httptest.NewRecorder()
+		handler.rateLimitMiddleware(handler.handleAuth)(res, req)
+		if res.Code != http.StatusOK {
+			t.Fatalf("expected status 200 on request %d, got %d", i+1, res.Code)
+		}
+	}
+
+	// 6th request should be rejected
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/auth",
+		strings.NewReader(`{"user_id":"alice","role":"admin"}`),
+	)
+	res := httptest.NewRecorder()
+	handler.rateLimitMiddleware(handler.handleAuth)(res, req)
+	if res.Code != http.StatusTooManyRequests {
+		t.Fatalf("expected status 429, got %d", res.Code)
+	}
+
+	// Check metrics
+	metricsResponse := httptest.NewRecorder()
+	handler.handleMetricsSnapshot(metricsResponse, httptest.NewRequest(http.MethodGet, "/metrics/snapshot", nil))
+	metricsBody := decodeJSONResponse[runtimeMetricsSnapshot](t, metricsResponse)
+	if metricsBody.RateLimitRejectionsTotal != 1 {
+		t.Fatalf("expected one rate limit rejection in metrics, got %d", metricsBody.RateLimitRejectionsTotal)
+	}
+}
