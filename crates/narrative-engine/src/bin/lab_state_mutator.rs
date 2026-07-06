@@ -15,7 +15,9 @@ fn main() {
     println!("📋 Initial state: {:?}", state);
 
     // ── Decision point 1: inject latency ────────────────────────────────────
-    state.inject_latency(250_000); // 250 ms
+    state
+        .inject_latency(250_000)
+        .expect("latency mutation failed"); // 250 ms
     println!(
         "⏱️  After InjectLatency(250 ms): latency_injected_ms = {:?}",
         state.latency_injected_ms
@@ -23,14 +25,18 @@ fn main() {
 
     // ── Decision point 2: partition network channels ─────────────────────────
     let channels = vec!["eth0".to_string(), "eth1".to_string()];
-    state.inject_partition(&channels);
+    state
+        .inject_partition(&channels)
+        .expect("partition mutation failed");
     println!(
         "🔌 After InjectPartition: network_partitions = {:?}",
         state.network_partitions
     );
 
     // Duplicate insert is a no-op
-    state.inject_partition(&["eth0".to_string()]);
+    state
+        .inject_partition(&["eth0".to_string()])
+        .expect("duplicate partition mutation failed");
     println!(
         "   (duplicate insert ignored — still {} channels)",
         state.network_partitions.len()

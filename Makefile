@@ -1,7 +1,7 @@
 # NexusFlow — Development Makefile
 # Run `make help` to see all available targets.
 
-.PHONY: help bootstrap dev up down lint lint-ts clippy fmt fmt-check test test-rust test-ts test-go smoke-jwt-lab smoke-jwt-staging smoke-jwt-staging-kind walkthrough-jwt-lab exercise-jwt-staging-kind exercise-jwt-staging-kind-eso cleanup-jwt-staging-kind rehearse-jwt-staging-rollback docker-build-jwt-lab bench clean verify-bridge
+.PHONY: help bootstrap dev up down lint lint-ts lint-go clippy fmt fmt-check fmt-go fmt-check-go test test-rust test-ts test-go smoke-jwt-lab smoke-jwt-staging smoke-jwt-staging-kind walkthrough-jwt-lab exercise-jwt-staging-kind exercise-jwt-staging-kind-eso cleanup-jwt-staging-kind rehearse-jwt-staging-rollback docker-build-jwt-lab bench clean verify-bridge
 
 # ── Meta ──────────────────────────────────────────────────────────────────────
 help: ## Show this help message
@@ -52,6 +52,15 @@ lint-ts: ## Run eslint for packages/types-shared
 test-go: ## Run Go tests for the JWT auth lab
 	cd labs/path-1-sovereign-foundations/chapter-jwt-auth && go test ./...
 
+fmt-go: ## Auto-format all Go source files
+	gofmt -w labs/path-1-sovereign-foundations/chapter-jwt-auth/
+
+fmt-check-go: ## Check Go formatting without writing (CI gate)
+	@test -z "$(shell gofmt -l labs/path-1-sovereign-foundations/chapter-jwt-auth/)" || (echo "Go files not formatted: $(shell gofmt -l labs/path-1-sovereign-foundations/chapter-jwt-auth/)" && false)
+
+lint-go: ## Run basic Go linting (go vet)
+	cd labs/path-1-sovereign-foundations/chapter-jwt-auth && go vet ./...
+
 smoke-jwt-lab: ## Validate the JWT auth lab Docker Compose configuration
 	docker compose --env-file labs/path-1-sovereign-foundations/chapter-jwt-auth/.env.example -f labs/path-1-sovereign-foundations/chapter-jwt-auth/docker-compose.yml config > /dev/null
 
@@ -82,7 +91,7 @@ rehearse-jwt-staging-rollback: ## Deploy, smoke test, and roll back the kind-bas
 docker-build-jwt-lab: ## Build the JWT auth backend image locally
 	docker build -f labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend -t nexusflow/jwt-auth-backend:local labs/path-1-sovereign-foundations/chapter-jwt-auth
 
-lint: clippy lint-ts test-go ## Run all enforceable code-quality checks
+lint: clippy lint-ts lint-go ## Run all enforceable code-quality checks
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 clean: ## Remove Rust build artefacts

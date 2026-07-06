@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -17,9 +18,10 @@ import (
 )
 
 const (
-	defaultTokenTTL = 15 * time.Minute
-	defaultIssuer   = "nexusflow-jwt-lab"
-	defaultAudience = "nexusflow-lab-clients"
+	defaultPort     = "8080"
+	defaultIssuer   = "nexusflow-lab"
+	defaultAudience = "nexusflow-user"
+	defaultTokenTTL = 1 * time.Hour
 )
 
 type appConfig struct {
@@ -33,10 +35,23 @@ type appConfig struct {
 type failureCause string
 
 const (
-	failureCauseCPU    failureCause = "cpu"
+	failureCauseCpu    failureCause = "cpu"
 	failureCauseMemory failureCause = "memory"
 	failureCauseDisk   failureCause = "disk"
 )
+
+func parseFailureCause(s string) (failureCause, error) {
+	switch strings.ToLower(s) {
+	case "cpu":
+		return failureCauseCpu, nil
+	case "memory":
+		return failureCauseMemory, nil
+	case "disk":
+		return failureCauseDisk, nil
+	default:
+		return "", fmt.Errorf("invalid failure cause: %s", s)
+	}
+}
 
 type labState struct {
 	LatencyInjectedMs *uint64                 `json:"latency_injected_ms,omitempty"`
@@ -59,7 +74,7 @@ type runtimeMetricsSnapshot struct {
 
 type narrativeMutationRequest struct {
 	Type     string   `json:"type"`
-	DelayUS  uint32   `json:"delay_us,omitempty"`
+	DelayUs  uint32   `json:"delay_us,omitempty"`
 	Channels []string `json:"channels,omitempty"`
 	NodeID   string   `json:"node_id,omitempty"`
 	Cause    string   `json:"cause,omitempty"`
@@ -74,9 +89,7 @@ type narrativeMutationResponse struct {
 type alertmanagerWebhookPayload struct {
 	Status string `json:"status"`
 	Alerts []struct {
-		Status      string            `json:"status"`
-		Labels      map[string]string `json:"labels"`
-		Annotations map[string]string `json:"annotations"`
+		Status string `json:"status"`
 	} `json:"alerts"`
 }
 
@@ -86,108 +99,13 @@ type labRuntime struct {
 	metrics runtimeMetricsSnapshot
 }
 
-type runtimeSnapshot struct {
-	state   labState
-	metrics runtimeMetricsSnapshot
-}
-
-type labRuntimeCollector struct {
-	runtime *labRuntime
-	descs   map[string]*prometheus.Desc
-}
-
-func newLabRuntimeCollector(runtime *labRuntime) *labRuntimeCollector {
-	return &labRuntimeCollector{
-		runtime: runtime,
-		descs: map[string]*prometheus.Desc{
-			"auth_requests_total":                  prometheus.NewDesc("jwt_lab_auth_requests_total", "Total JWT auth requests received.", nil, nil),
-			"auth_success_total":                   prometheus.NewDesc("jwt_lab_auth_success_total", "Total successful JWT auth responses.", nil, nil),
-			"auth_failure_total":                   prometheus.NewDesc("jwt_lab_auth_failure_total", "Total failed JWT auth responses.", nil, nil),
-			"alerts_received_total":                prometheus.NewDesc("jwt_lab_alerts_received_total", "Total Alertmanager webhook deliveries received by the JWT lab runtime.", nil, nil),
-			"narrative_mutations_total":            prometheus.NewDesc("jwt_lab_narrative_mutations_total", "Total successful narrative mutations applied.", nil, nil),
-			"narrative_mutation_failures_total":    prometheus.NewDesc("jwt_lab_narrative_mutation_failures_total", "Total failed narrative mutation requests.", nil, nil),
-			"state_reads_total":                    prometheus.NewDesc("jwt_lab_state_reads_total", "Total runtime state snapshot reads.", nil, nil),
-			"metrics_reads_total":                  prometheus.NewDesc("jwt_lab_metrics_reads_total", "Total runtime metrics scrapes and snapshot reads.", nil, nil),
-			"last_auth_processing_nanoseconds":     prometheus.NewDesc("jwt_lab_last_auth_processing_nanoseconds", "Duration in nanoseconds of the last successful auth request.", nil, nil),
-			"last_mutation_processing_nanoseconds": prometheus.NewDesc("jwt_lab_last_mutation_processing_nanoseconds", "Duration in nanoseconds of the last successful narrative mutation.", nil, nil),
-			"latency_injected_milliseconds":        prometheus.NewDesc("jwt_lab_latency_injected_milliseconds", "Current injected latency in milliseconds.", nil, nil),
-			"network_partitions":                   prometheus.NewDesc("jwt_lab_network_partitions", "Current number of active network partitions.", nil, nil),
-			"node_failures":                        prometheus.NewDesc("jwt_lab_node_failures", "Current number of tracked node failures.", nil, nil),
-		},
-	}
-}
-
-func (collector *labRuntimeCollector) Describe(ch chan<- *prometheus.Desc) {
-	for _, desc := range collector.descs {
-		ch <- desc
-	}
-}
-
-func (collector *labRuntimeCollector) Collect(ch chan<- prometheus.Metric) {
-	snapshot := collector.runtime.snapshotForMetrics()
-	latencyMs := float64(0)
-	if snapshot.state.LatencyInjectedMs != nil {
-		latencyMs = float64(*snapshot.state.LatencyInjectedMs)
-	}
-
-	ch <- prometheus.MustNewConstMetric(collector.descs["auth_requests_total"], prometheus.CounterValue, float64(snapshot.metrics.AuthRequestsTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["auth_success_total"], prometheus.CounterValue, float64(snapshot.metrics.AuthSuccessTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["auth_failure_total"], prometheus.CounterValue, float64(snapshot.metrics.AuthFailureTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["alerts_received_total"], prometheus.CounterValue, float64(snapshot.metrics.AlertsReceivedTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["narrative_mutations_total"], prometheus.CounterValue, float64(snapshot.metrics.NarrativeMutationsTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["narrative_mutation_failures_total"], prometheus.CounterValue, float64(snapshot.metrics.NarrativeMutationFailuresTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["state_reads_total"], prometheus.CounterValue, float64(snapshot.metrics.StateReadsTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["metrics_reads_total"], prometheus.CounterValue, float64(snapshot.metrics.MetricsReadsTotal))
-	ch <- prometheus.MustNewConstMetric(collector.descs["last_auth_processing_nanoseconds"], prometheus.GaugeValue, float64(snapshot.metrics.LastAuthProcessingNs))
-	ch <- prometheus.MustNewConstMetric(collector.descs["last_mutation_processing_nanoseconds"], prometheus.GaugeValue, float64(snapshot.metrics.LastMutationProcessingNs))
-	ch <- prometheus.MustNewConstMetric(collector.descs["latency_injected_milliseconds"], prometheus.GaugeValue, latencyMs)
-	ch <- prometheus.MustNewConstMetric(collector.descs["network_partitions"], prometheus.GaugeValue, float64(len(snapshot.state.NetworkPartitions)))
-	ch <- prometheus.MustNewConstMetric(collector.descs["node_failures"], prometheus.GaugeValue, float64(len(snapshot.state.NodeFailures)))
-}
-
 func newLabRuntime() *labRuntime {
 	return &labRuntime{
 		state: labState{
 			NetworkPartitions: []string{},
-			NodeFailures:      map[string]failureCause{},
+			NodeFailures:      make(map[string]failureCause),
 		},
 	}
-}
-
-func cloneState(input labState) labState {
-	cloned := labState{
-		NetworkPartitions: append([]string(nil), input.NetworkPartitions...),
-		NodeFailures:      make(map[string]failureCause, len(input.NodeFailures)),
-	}
-	if input.LatencyInjectedMs != nil {
-		value := *input.LatencyInjectedMs
-		cloned.LatencyInjectedMs = &value
-	}
-	for nodeID, cause := range input.NodeFailures {
-		cloned.NodeFailures[nodeID] = cause
-	}
-	return cloned
-}
-
-func (runtime *labRuntime) snapshotState() labState {
-	runtime.mu.Lock()
-	defer runtime.mu.Unlock()
-	runtime.metrics.StateReadsTotal++
-	return cloneState(runtime.state)
-}
-
-func (runtime *labRuntime) snapshotMetrics() runtimeMetricsSnapshot {
-	runtime.mu.Lock()
-	defer runtime.mu.Unlock()
-	runtime.metrics.MetricsReadsTotal++
-	return runtime.metrics
-}
-
-func (runtime *labRuntime) snapshotForMetrics() runtimeSnapshot {
-	runtime.mu.Lock()
-	defer runtime.mu.Unlock()
-	runtime.metrics.MetricsReadsTotal++
-	return runtimeSnapshot{state: cloneState(runtime.state), metrics: runtime.metrics}
 }
 
 func (runtime *labRuntime) recordAuthRequest() {
@@ -221,29 +139,34 @@ func (runtime *labRuntime) recordAlertsReceived(count int) {
 	runtime.metrics.AlertsReceivedTotal += uint64(count)
 }
 
-func normalizeChannels(channels []string) []string {
-	unique := make([]string, 0, len(channels))
-	for _, channel := range channels {
-		trimmed := strings.TrimSpace(channel)
-		if trimmed == "" || slices.Contains(unique, trimmed) {
-			continue
-		}
-		unique = append(unique, trimmed)
+func cloneState(s labState) labState {
+	partitions := make([]string, len(s.NetworkPartitions))
+	copy(partitions, s.NetworkPartitions)
+
+	failures := make(map[string]failureCause)
+	for k, v := range s.NodeFailures {
+		failures[k] = v
 	}
-	return unique
+
+	return labState{
+		LatencyInjectedMs: s.LatencyInjectedMs,
+		NetworkPartitions: partitions,
+		NodeFailures:      failures,
+	}
 }
 
-func parseFailureCause(raw string) (failureCause, error) {
-	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case string(failureCauseCPU):
-		return failureCauseCPU, nil
-	case string(failureCauseMemory):
-		return failureCauseMemory, nil
-	case string(failureCauseDisk):
-		return failureCauseDisk, nil
-	default:
-		return "", errors.New("cause must be one of cpu, memory, disk")
-	}
+func (runtime *labRuntime) snapshotState() labState {
+	runtime.mu.Lock()
+	defer runtime.mu.Unlock()
+	runtime.metrics.StateReadsTotal++
+	return cloneState(runtime.state)
+}
+
+func (runtime *labRuntime) snapshotMetrics() runtimeMetricsSnapshot {
+	runtime.mu.Lock()
+	defer runtime.mu.Unlock()
+	runtime.metrics.MetricsReadsTotal++
+	return runtime.metrics
 }
 
 func (runtime *labRuntime) applyMutation(request narrativeMutationRequest, started time.Time) (labState, runtimeMetricsSnapshot, error) {
@@ -252,13 +175,18 @@ func (runtime *labRuntime) applyMutation(request narrativeMutationRequest, start
 
 	switch request.Type {
 	case "inject_latency":
-		if request.DelayUS == 0 {
-			return labState{}, runtimeMetricsSnapshot{}, errors.New("delay_us must be greater than zero")
+		if request.DelayUs == 0 {
+			return labState{}, runtimeMetricsSnapshot{}, errors.New("delay_us must be > 0")
 		}
-		latencyMs := uint64(request.DelayUS / 1_000)
-		runtime.state.LatencyInjectedMs = &latencyMs
+		if request.DelayUs >= 1000000 {
+			return labState{}, runtimeMetricsSnapshot{}, errors.New("delay_us exceeds 1-second cap")
+		}
+		ms := uint64(request.DelayUs / 1000)
+		runtime.state.LatencyInjectedMs = &ms
 	case "partition_network":
-		channels := normalizeChannels(request.Channels)
+		channels := slices.DeleteFunc(request.Channels, func(s string) bool {
+			return strings.TrimSpace(s) == ""
+		})
 		if len(channels) == 0 {
 			return labState{}, runtimeMetricsSnapshot{}, errors.New("channels must contain at least one value")
 		}
@@ -583,4 +511,86 @@ func main() {
 
 	log.Printf("JWT auth backend listening on :%s issuer=%q audience=%q ttl=%s", config.port, config.issuer, config.audience, config.tokenTTL)
 	log.Fatal(http.ListenAndServe(":"+config.port, nil))
+}
+
+type labRuntimeCollector struct {
+	runtime               *labRuntime
+	authRequestsTotal     *prometheus.Desc
+	authSuccessTotal      *prometheus.Desc
+	authFailureTotal      *prometheus.Desc
+	alertsReceivedTotal   *prometheus.Desc
+	mutationsTotal        *prometheus.Desc
+	mutationFailuresTotal *prometheus.Desc
+	latencyInjectedMs     *prometheus.Desc
+}
+
+func newLabRuntimeCollector(runtime *labRuntime) *labRuntimeCollector {
+	return &labRuntimeCollector{
+		runtime: runtime,
+		authRequestsTotal: prometheus.NewDesc(
+			"jwt_lab_auth_requests_total",
+			"Total number of authentication requests processed.",
+			nil, nil,
+		),
+		authSuccessTotal: prometheus.NewDesc(
+			"jwt_lab_auth_success_total",
+			"Total number of successful authentication requests.",
+			nil, nil,
+		),
+		authFailureTotal: prometheus.NewDesc(
+			"jwt_lab_auth_failure_total",
+			"Total number of failed authentication requests.",
+			nil, nil,
+		),
+		alertsReceivedTotal: prometheus.NewDesc(
+			"jwt_lab_alerts_received_total",
+			"Total number of alerts received via the webhook endpoint.",
+			nil, nil,
+		),
+		mutationsTotal: prometheus.NewDesc(
+			"jwt_lab_narrative_mutations_total",
+			"Total number of narrative state mutations applied.",
+			nil, nil,
+		),
+		mutationFailuresTotal: prometheus.NewDesc(
+			"jwt_lab_narrative_mutation_failures_total",
+			"Total number of failed narrative state mutations.",
+			nil, nil,
+		),
+		latencyInjectedMs: prometheus.NewDesc(
+			"jwt_lab_latency_injected_milliseconds",
+			"Currently injected artificial latency in milliseconds.",
+			nil, nil,
+		),
+	}
+}
+
+func (c *labRuntimeCollector) Describe(ch chan<- *prometheus.Desc) {
+	ch <- c.authRequestsTotal
+	ch <- c.authSuccessTotal
+	ch <- c.authFailureTotal
+	ch <- c.alertsReceivedTotal
+	ch <- c.mutationsTotal
+	ch <- c.mutationFailuresTotal
+	ch <- c.latencyInjectedMs
+}
+
+func (c *labRuntimeCollector) Collect(ch chan<- prometheus.Metric) {
+	c.runtime.mu.Lock()
+	state := cloneState(c.runtime.state)
+	metrics := c.runtime.metrics
+	c.runtime.mu.Unlock()
+
+	ch <- prometheus.MustNewConstMetric(c.authRequestsTotal, prometheus.CounterValue, float64(metrics.AuthRequestsTotal))
+	ch <- prometheus.MustNewConstMetric(c.authSuccessTotal, prometheus.CounterValue, float64(metrics.AuthSuccessTotal))
+	ch <- prometheus.MustNewConstMetric(c.authFailureTotal, prometheus.CounterValue, float64(metrics.AuthFailureTotal))
+	ch <- prometheus.MustNewConstMetric(c.alertsReceivedTotal, prometheus.CounterValue, float64(metrics.AlertsReceivedTotal))
+	ch <- prometheus.MustNewConstMetric(c.mutationsTotal, prometheus.CounterValue, float64(metrics.NarrativeMutationsTotal))
+	ch <- prometheus.MustNewConstMetric(c.mutationFailuresTotal, prometheus.CounterValue, float64(metrics.NarrativeMutationFailuresTotal))
+
+	if state.LatencyInjectedMs != nil {
+		ch <- prometheus.MustNewConstMetric(c.latencyInjectedMs, prometheus.GaugeValue, float64(*state.LatencyInjectedMs))
+	} else {
+		ch <- prometheus.MustNewConstMetric(c.latencyInjectedMs, prometheus.GaugeValue, 0)
+	}
 }

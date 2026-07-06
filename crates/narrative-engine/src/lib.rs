@@ -26,25 +26,35 @@ pub struct LabState {
 impl LabState {
     /// Inject latency via mutation — converts microseconds to milliseconds.
     ///
-    /// Returns `&mut Self` so callers can chain mutations.
-    pub fn inject_latency(&mut self, delay_us: u32) -> &mut Self {
-        // checked_div prevents divide-by-zero; 0 us maps to None
-        if delay_us > 0 {
-            self.latency_injected_ms = (delay_us as u64).checked_div(1_000);
+    /// Validates that delay_us is in (0, 1_000_000).
+    pub fn inject_latency(&mut self, delay_us: u32) -> Result<&mut Self, String> {
+        if delay_us == 0 {
+            return Err("delay_us must be > 0".to_string());
         }
-        self
+        if delay_us >= 1_000_000 {
+            return Err(format!(
+                "delay_us {} exceeds 1-second cap; use network-level tooling instead",
+                delay_us
+            ));
+        }
+
+        self.latency_injected_ms = Some((delay_us as u64) / 1_000);
+        Ok(self)
     }
 
     /// Disable MCR spray on specified channels.
     ///
-    /// Uses `extend` to avoid reallocating when capacity already exists.
-    pub fn inject_partition(&mut self, channels: &[String]) -> &mut Self {
+    /// Requires at least one channel.
+    pub fn inject_partition(&mut self, channels: &[String]) -> Result<&mut Self, String> {
+        if channels.is_empty() {
+            return Err("At least one channel is required for partitioning".to_string());
+        }
         for channel in channels {
             if !self.network_partitions.contains(channel) {
                 self.network_partitions.push(channel.clone());
             }
         }
-        self
+        Ok(self)
     }
 
     /// Record a simulated node failure.
@@ -70,29 +80,43 @@ mod tests {
     #[test]
     fn test_inject_latency() {
         let mut state = LabState::default();
-        state.inject_latency(500_000); // 500 ms
+        state.inject_latency(500_000).unwrap(); // 500 ms
         assert_eq!(state.latency_injected_ms, Some(500));
         println!("✅ narrative-engine: inject_latency converts µs → ms correctly");
     }
 
     #[test]
-    fn test_inject_latency_zero_no_op() {
+    fn test_inject_latency_zero_rejected() {
         let mut state = LabState::default();
-        state.inject_latency(0);
-        assert!(state.latency_injected_ms.is_none());
+        let res = state.inject_latency(0);
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_inject_latency_over_cap_rejected() {
+        let mut state = LabState::default();
+        let res = state.inject_latency(1_000_000);
+        assert!(res.is_err());
     }
 
     #[test]
     fn test_inject_partition() {
         let mut state = LabState::default();
         let channels = vec!["eth0".to_string(), "eth1".to_string()];
-        state.inject_partition(&channels);
+        state.inject_partition(&channels).unwrap();
         assert_eq!(state.network_partitions.len(), 2);
 
         // Duplicate insertion is a no-op
-        state.inject_partition(&["eth0".to_string()]);
+        state.inject_partition(&["eth0".to_string()]).unwrap();
         assert_eq!(state.network_partitions.len(), 2);
         println!("✅ narrative-engine: inject_partition deduplicates channels");
+    }
+
+    #[test]
+    fn test_inject_partition_empty_rejected() {
+        let mut state = LabState::default();
+        let res = state.inject_partition(&[]);
+        assert!(res.is_err());
     }
 
     #[test]
@@ -107,7 +131,7 @@ mod tests {
     #[test]
     fn test_clone_is_independent() {
         let mut original = LabState::default();
-        original.inject_latency(1_000);
+        original.inject_latency(1_000).unwrap();
         let cloned = original.clone();
         assert_eq!(cloned.latency_injected_ms, original.latency_injected_ms);
         println!("✅ narrative-engine: Clone produces independent copy");
