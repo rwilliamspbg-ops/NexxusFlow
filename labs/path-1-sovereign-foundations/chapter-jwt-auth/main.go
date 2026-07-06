@@ -73,11 +73,11 @@ type runtimeMetricsSnapshot struct {
 }
 
 type narrativeMutationRequest struct {
-	Type    string   `json:"type"`
-	DelayUs uint32   `json:"delay_us,omitempty"`
+	Type     string   `json:"type"`
+	DelayUs  uint32   `json:"delay_us,omitempty"`
 	Channels []string `json:"channels,omitempty"`
-	NodeID  string   `json:"node_id,omitempty"`
-	Cause   string   `json:"cause,omitempty"`
+	NodeID   string   `json:"node_id,omitempty"`
+	Cause    string   `json:"cause,omitempty"`
 }
 
 type narrativeMutationResponse struct {
