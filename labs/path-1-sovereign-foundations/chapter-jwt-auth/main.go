@@ -22,6 +22,10 @@ const (
 	defaultIssuer   = "nexusflow-lab"
 	defaultAudience = "nexusflow-user"
 	defaultTokenTTL = 1 * time.Hour
+
+	// Rate limiting defaults
+	defaultRateLimitBurst  = 5
+	defaultRateLimitRefill = 1 * time.Second
 )
 
 type appConfig struct {
@@ -66,6 +70,7 @@ type runtimeMetricsSnapshot struct {
 	AlertsReceivedTotal            uint64 `json:"alerts_received_total"`
 	NarrativeMutationsTotal        uint64 `json:"narrative_mutations_total"`
 	NarrativeMutationFailuresTotal uint64 `json:"narrative_mutation_failures_total"`
+	RateLimitRejectionsTotal       uint64 `json:"rate_limit_rejections_total"`
 	StateReadsTotal                uint64 `json:"state_reads_total"`
 	MetricsReadsTotal              uint64 `json:"metrics_reads_total"`
 	LastAuthProcessingNs           int64  `json:"last_auth_processing_ns"`
@@ -131,6 +136,12 @@ func (runtime *labRuntime) recordNarrativeMutationFailure() {
 	runtime.mu.Lock()
 	defer runtime.mu.Unlock()
 	runtime.metrics.NarrativeMutationFailuresTotal++
+}
+
+func (runtime *labRuntime) recordRateLimitRejection() {
+	runtime.mu.Lock()
+	defer runtime.mu.Unlock()
+	runtime.metrics.RateLimitRejectionsTotal++
 }
 
 func (runtime *labRuntime) recordAlertsReceived(count int) {
@@ -214,11 +225,51 @@ func (runtime *labRuntime) applyMutation(request narrativeMutationRequest, start
 	return cloneState(runtime.state), runtime.metrics, nil
 }
 
+// Token bucket rate limiter
+type rateLimiter struct {
+	mu         sync.Mutex
+	tokens     int
+	maxTokens  int
+	refillRate time.Duration
+	lastRefill time.Time
+}
+
+func newRateLimiter(burst int, refill time.Duration) *rateLimiter {
+	return &rateLimiter{
+		tokens:     burst,
+		maxTokens:  burst,
+		refillRate: refill,
+		lastRefill: time.Now(),
+	}
+}
+
+func (rl *rateLimiter) allow() bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	refillCount := int(now.Sub(rl.lastRefill) / rl.refillRate)
+	if refillCount > 0 {
+		rl.tokens += refillCount
+		if rl.tokens > rl.maxTokens {
+			rl.tokens = rl.maxTokens
+		}
+		rl.lastRefill = now
+	}
+
+	if rl.tokens > 0 {
+		rl.tokens--
+		return true
+	}
+	return false
+}
+
 // JWTAuthHandler issues and validates signed JWTs for the lab service.
 type JWTAuthHandler struct {
 	config         appConfig
 	runtime        *labRuntime
 	metricsHandler http.Handler
+	limiter        *rateLimiter
 }
 
 type tokenClaims struct {
@@ -277,6 +328,7 @@ func NewJWTAuthHandler(config appConfig) *JWTAuthHandler {
 		config:         config,
 		runtime:        runtime,
 		metricsHandler: promhttp.HandlerFor(registry, promhttp.HandlerOpts{}),
+		limiter:        newRateLimiter(defaultRateLimitBurst, defaultRateLimitRefill),
 	}
 }
 
@@ -285,6 +337,17 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		log.Printf("encode response: %v", err)
+	}
+}
+
+func (h *JWTAuthHandler) rateLimitMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !h.limiter.allow() {
+			h.runtime.recordRateLimitRejection()
+			writeJSON(w, http.StatusTooManyRequests, map[string]string{"error": "too many requests"})
+			return
+		}
+		next(w, r)
 	}
 }
 
@@ -502,12 +565,12 @@ func main() {
 
 	http.HandleFunc("/health", handler.handleHealth)
 	http.HandleFunc("/readyz", handler.handleReady)
-	http.HandleFunc("/auth", handler.handleAuth)
+	http.HandleFunc("/auth", handler.rateLimitMiddleware(handler.handleAuth))
 	http.HandleFunc("/state", handler.handleState)
 	http.HandleFunc("/metrics", handler.handleMetrics)
 	http.HandleFunc("/metrics/snapshot", handler.handleMetricsSnapshot)
 	http.HandleFunc("/alerts", handler.handleAlerts)
-	http.HandleFunc("/narrative/apply", handler.handleNarrativeMutation)
+	http.HandleFunc("/narrative/apply", handler.rateLimitMiddleware(handler.handleNarrativeMutation))
 
 	log.Printf("JWT auth backend listening on :%s issuer=%q audience=%q ttl=%s", config.port, config.issuer, config.audience, config.tokenTTL)
 	log.Fatal(http.ListenAndServe(":"+config.port, nil))
@@ -521,6 +584,7 @@ type labRuntimeCollector struct {
 	alertsReceivedTotal   *prometheus.Desc
 	mutationsTotal        *prometheus.Desc
 	mutationFailuresTotal *prometheus.Desc
+	rateLimitRejections   *prometheus.Desc
 	latencyInjectedMs     *prometheus.Desc
 }
 
@@ -557,6 +621,11 @@ func newLabRuntimeCollector(runtime *labRuntime) *labRuntimeCollector {
 			"Total number of failed narrative state mutations.",
 			nil, nil,
 		),
+		rateLimitRejections: prometheus.NewDesc(
+			"jwt_lab_rate_limit_rejections_total",
+			"Total number of requests rejected due to rate limiting.",
+			nil, nil,
+		),
 		latencyInjectedMs: prometheus.NewDesc(
 			"jwt_lab_latency_injected_milliseconds",
 			"Currently injected artificial latency in milliseconds.",
@@ -572,6 +641,7 @@ func (c *labRuntimeCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- c.alertsReceivedTotal
 	ch <- c.mutationsTotal
 	ch <- c.mutationFailuresTotal
+	ch <- c.rateLimitRejections
 	ch <- c.latencyInjectedMs
 }
 
@@ -587,6 +657,7 @@ func (c *labRuntimeCollector) Collect(ch chan<- prometheus.Metric) {
 	ch <- prometheus.MustNewConstMetric(c.alertsReceivedTotal, prometheus.CounterValue, float64(metrics.AlertsReceivedTotal))
 	ch <- prometheus.MustNewConstMetric(c.mutationsTotal, prometheus.CounterValue, float64(metrics.NarrativeMutationsTotal))
 	ch <- prometheus.MustNewConstMetric(c.mutationFailuresTotal, prometheus.CounterValue, float64(metrics.NarrativeMutationFailuresTotal))
+	ch <- prometheus.MustNewConstMetric(c.rateLimitRejections, prometheus.CounterValue, float64(metrics.RateLimitRejectionsTotal))
 
 	if state.LatencyInjectedMs != nil {
 		ch <- prometheus.MustNewConstMetric(c.latencyInjectedMs, prometheus.GaugeValue, float64(*state.LatencyInjectedMs))
