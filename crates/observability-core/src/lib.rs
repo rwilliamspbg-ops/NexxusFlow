@@ -1,11 +1,19 @@
-//! Observability Core — Prometheus metrics emitter + WebSocket updater for real-time dashboards
+//! # Observability Core
 //!
-//! Uses a lock-free MPMC channel (crossbeam) to avoid core stalling under high load.
+//! This crate provides the foundational metrics collection infrastructure for NexxusFlow.
+//! It uses a lock-free Multi-Producer Multi-Consumer (MPMC) channel to ensure that
+//! the high-performance data plane is never blocked by metrics collection.
+//!
+//! ## Educational Extension: Adding Custom Metrics
+//! To track a new metric (e.g., "CPU Temperature"):
+//! 1. Add a new field to the \`PacketStat\` struct (or create a new \`SystemStat\` struct).
+//! 2. Implement a record method in \`LockFreeStatsRing\` to enqueue the data.
+//! 3. Update the metrics server binary (\`src/bin/metrics_server.rs\`) to expose this to Prometheus.
 
 use crossbeam_channel::{bounded, Receiver, Sender, TrySendError};
 use std::collections::HashMap;
 
-/// Packet stat structure — fixed-size fields, HashMap only for optional breakdowns.
+/// Packet stat structure — fixed-size fields for performance.
 #[derive(Debug, Clone)]
 pub struct PacketStat {
     pub packet_size: usize,
@@ -26,8 +34,8 @@ impl PacketStat {
 
 /// Lock-Free Stats Ring using a bounded MPMC channel.
 ///
-/// The producer side (`tx`) is used by the data-plane hot path to enqueue stats.
-/// The consumer side (`rx`) is polled by the metrics emitter / Prometheus collector.
+/// The producer side (\`tx\`) is used by the data-plane hot path to enqueue stats.
+/// The consumer side (\`rx\`) is polled by the metrics emitter / Prometheus collector.
 pub struct LockFreeStatsRing {
     /// Producer side — clone this to get a new sender for each data-plane thread.
     pub tx: Sender<PacketStat>,

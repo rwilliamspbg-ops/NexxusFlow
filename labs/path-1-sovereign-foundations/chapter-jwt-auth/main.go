@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -15,6 +17,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
+	oteltrace "go.opentelemetry.io/otel/trace"
 )
 
 const (
@@ -29,11 +38,13 @@ const (
 )
 
 type appConfig struct {
-	port      string
-	secretKey string
-	issuer    string
-	audience  string
-	tokenTTL  time.Duration
+	port            string
+	secretKey       string
+	issuer          string
+	audience        string
+	tokenTTL        time.Duration
+	rateLimitBurst  int
+	rateLimitRefill time.Duration
 }
 
 type failureCause string
@@ -248,13 +259,16 @@ func (rl *rateLimiter) allow() bool {
 	defer rl.mu.Unlock()
 
 	now := time.Now()
-	refillCount := int(now.Sub(rl.lastRefill) / rl.refillRate)
+	elapsed := now.Sub(rl.lastRefill)
+	refillCount := int(elapsed / rl.refillRate)
+
 	if refillCount > 0 {
 		rl.tokens += refillCount
 		if rl.tokens > rl.maxTokens {
 			rl.tokens = rl.maxTokens
 		}
-		rl.lastRefill = now
+		// Accurate refill timing to prevent drift
+		rl.lastRefill = rl.lastRefill.Add(time.Duration(refillCount) * rl.refillRate)
 	}
 
 	if rl.tokens > 0 {
@@ -270,6 +284,11 @@ type JWTAuthHandler struct {
 	runtime        *labRuntime
 	metricsHandler http.Handler
 	limiter        *rateLimiter
+	blacklist      map[string]time.Time
+	blacklistMu    sync.RWMutex
+	mu             sync.RWMutex
+	currentSecret  string
+	tracer         oteltrace.Tracer
 }
 
 type tokenClaims struct {
@@ -310,12 +329,30 @@ func loadConfig() (appConfig, error) {
 		tokenTTL = parsedTTL
 	}
 
+	rateBurst := defaultRateLimitBurst
+	if rawBurst := strings.TrimSpace(os.Getenv("RATE_LIMIT_BURST")); rawBurst != "" {
+		parsedBurst, err := strconv.Atoi(rawBurst)
+		if err == nil && parsedBurst > 0 {
+			rateBurst = parsedBurst
+		}
+	}
+
+	rateRefill := defaultRateLimitRefill
+	if rawRefill := strings.TrimSpace(os.Getenv("RATE_LIMIT_REFILL")); rawRefill != "" {
+		parsedRefill, err := time.ParseDuration(rawRefill)
+		if err == nil && parsedRefill > 0 {
+			rateRefill = parsedRefill
+		}
+	}
+
 	return appConfig{
-		port:      port,
-		secretKey: secret,
-		issuer:    issuer,
-		audience:  audience,
-		tokenTTL:  tokenTTL,
+		port:            port,
+		secretKey:       secret,
+		issuer:          issuer,
+		audience:        audience,
+		tokenTTL:        tokenTTL,
+		rateLimitBurst:  rateBurst,
+		rateLimitRefill: rateRefill,
 	}, nil
 }
 
@@ -328,7 +365,10 @@ func NewJWTAuthHandler(config appConfig) *JWTAuthHandler {
 		config:         config,
 		runtime:        runtime,
 		metricsHandler: promhttp.HandlerFor(registry, promhttp.HandlerOpts{}),
-		limiter:        newRateLimiter(defaultRateLimitBurst, defaultRateLimitRefill),
+		limiter:        newRateLimiter(config.rateLimitBurst, config.rateLimitRefill),
+		blacklist:      make(map[string]time.Time),
+		currentSecret:  config.secretKey,
+		tracer:         otel.Tracer("jwt-auth-backend"),
 	}
 }
 
@@ -460,17 +500,20 @@ type AuthResponse struct {
 }
 
 func validatePayload(payload JWTPayload) error {
-	payload.UserID = strings.TrimSpace(payload.UserID)
-	payload.Role = strings.TrimSpace(payload.Role)
+	userID := strings.TrimSpace(payload.UserID)
+	role := strings.TrimSpace(payload.Role)
 
-	if payload.UserID == "" {
+	if userID == "" {
 		return errors.New("user_id is required")
 	}
-	if payload.Role == "" {
+	if len(userID) > 128 {
+		return errors.New("user_id too long")
+	}
+	if role == "" {
 		return errors.New("role is required")
 	}
 
-	switch payload.Role {
+	switch role {
 	case "admin", "operator", "viewer":
 		return nil
 	default:
@@ -494,7 +537,7 @@ func (h *JWTAuthHandler) generateToken(payload JWTPayload) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(h.config.secretKey))
+	return token.SignedString([]byte(h.getSecret()))
 }
 
 func (h *JWTAuthHandler) validateToken(tokenString string) (*tokenClaims, error) {
@@ -502,7 +545,7 @@ func (h *JWTAuthHandler) validateToken(tokenString string) (*tokenClaims, error)
 		if token.Method != jwt.SigningMethodHS256 {
 			return nil, errors.New("unexpected signing method")
 		}
-		return []byte(h.config.secretKey), nil
+		return []byte(h.getSecret()), nil
 	}, jwt.WithAudience(h.config.audience), jwt.WithIssuer(h.config.issuer))
 	if err != nil {
 		return nil, err
@@ -513,11 +556,19 @@ func (h *JWTAuthHandler) validateToken(tokenString string) (*tokenClaims, error)
 		return nil, errors.New("invalid token")
 	}
 
+	if h.isRevoked(tokenString) {
+		return nil, errors.New("token has been revoked")
+	}
+
 	return claims, nil
 }
 
 // handleAuth processes an authentication request and returns a JWT token
 func (h *JWTAuthHandler) handleAuth(w http.ResponseWriter, r *http.Request) {
+	ctx, span := h.tracer.Start(r.Context(), "handleAuth")
+	defer span.End()
+	r = r.WithContext(ctx)
+
 	started := time.Now()
 	h.runtime.recordAuthRequest()
 
@@ -555,7 +606,133 @@ func (h *JWTAuthHandler) handleAuth(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, AuthResponse{Token: token, Payload: payload})
 }
 
+func (h *JWTAuthHandler) getSecret() string {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.currentSecret
+}
+
+func (h *JWTAuthHandler) rotateSecret(newSecret string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	log.Printf("Rotating JWT signing secret...")
+	h.currentSecret = newSecret
+}
+
+func (h *JWTAuthHandler) handleRotateSecret(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	var payload struct {
+		NewSecret string `json:"new_secret"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
+		return
+	}
+
+	if len(payload.NewSecret) < 32 {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "secret too short (min 32 chars)"})
+		return
+	}
+
+	h.rotateSecret(payload.NewSecret)
+	writeJSON(w, http.StatusOK, map[string]string{"status": "secret rotated"})
+}
+
+func (h *JWTAuthHandler) revokeToken(tokenString string) {
+	h.blacklistMu.Lock()
+	defer h.blacklistMu.Unlock()
+	h.blacklist[tokenString] = time.Now().Add(h.config.tokenTTL)
+}
+
+func (h *JWTAuthHandler) isRevoked(tokenString string) bool {
+	h.blacklistMu.RLock()
+	defer h.blacklistMu.RUnlock()
+	expiry, found := h.blacklist[tokenString]
+	if !found {
+		return false
+	}
+	return time.Now().Before(expiry)
+}
+
+func (h *JWTAuthHandler) handleRevoke(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, map[string]string{"error": "method not allowed"})
+		return
+	}
+
+	authHeader := r.Header.Get("Authorization")
+	if !strings.HasPrefix(authHeader, "Bearer ") {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid or missing token"})
+		return
+	}
+
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+	_, err := h.validateToken(tokenString)
+	if err != nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "invalid token"})
+		return
+	}
+
+	h.revokeToken(tokenString)
+	writeJSON(w, http.StatusOK, map[string]string{"status": "token revoked"})
+}
+
+func securityMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none';")
+
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		}
+
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func initTracer() (*trace.TracerProvider, error) {
+	exporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
+	if err != nil {
+		return nil, err
+	}
+	tp := trace.NewTracerProvider(
+		trace.WithSampler(trace.AlwaysSample()),
+		trace.WithBatcher(exporter),
+		trace.WithResource(resource.NewWithAttributes(
+			semconv.SchemaURL,
+			semconv.ServiceName("jwt-auth-backend"),
+			attribute.String("environment", "lab"),
+		)),
+	)
+	otel.SetTracerProvider(tp)
+	return tp, nil
+}
 func main() {
+	tp, err := initTracer()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := tp.Shutdown(context.Background()); err != nil {
+			log.Printf("Error shutting down tracer provider: %v", err)
+		}
+	}()
+
 	config, err := loadConfig()
 	if err != nil {
 		log.Fatalf("invalid configuration: %v", err)
@@ -563,17 +740,20 @@ func main() {
 
 	handler := NewJWTAuthHandler(config)
 
-	http.HandleFunc("/health", handler.handleHealth)
-	http.HandleFunc("/readyz", handler.handleReady)
-	http.HandleFunc("/auth", handler.rateLimitMiddleware(handler.handleAuth))
-	http.HandleFunc("/state", handler.handleState)
-	http.HandleFunc("/metrics", handler.handleMetrics)
-	http.HandleFunc("/metrics/snapshot", handler.handleMetricsSnapshot)
-	http.HandleFunc("/alerts", handler.handleAlerts)
-	http.HandleFunc("/narrative/apply", handler.rateLimitMiddleware(handler.handleNarrativeMutation))
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health", handler.handleHealth)
+	mux.HandleFunc("/readyz", handler.handleReady)
+	mux.HandleFunc("/auth", handler.rateLimitMiddleware(handler.handleAuth))
+	mux.HandleFunc("/revoke", handler.handleRevoke)
+	mux.HandleFunc("/rotate-secret", handler.handleRotateSecret)
+	mux.HandleFunc("/state", handler.handleState)
+	mux.HandleFunc("/metrics", handler.handleMetrics)
+	mux.HandleFunc("/metrics/snapshot", handler.handleMetricsSnapshot)
+	mux.HandleFunc("/alerts", handler.handleAlerts)
+	mux.HandleFunc("/narrative/apply", handler.rateLimitMiddleware(handler.handleNarrativeMutation))
 
 	log.Printf("JWT auth backend listening on :%s issuer=%q audience=%q ttl=%s", config.port, config.issuer, config.audience, config.tokenTTL)
-	log.Fatal(http.ListenAndServe(":"+config.port, nil))
+	log.Fatal(http.ListenAndServe(":"+config.port, securityMiddleware(mux)))
 }
 
 type labRuntimeCollector struct {
