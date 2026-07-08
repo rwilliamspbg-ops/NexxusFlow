@@ -27,6 +27,8 @@ func testConfig() appConfig {
 		issuer:    "test-issuer",
 		audience:  "test-audience",
 		tokenTTL:  15 * time.Minute,
+		rateLimitBurst:  5,
+		rateLimitRefill: 1 * time.Second,
 	}
 }
 

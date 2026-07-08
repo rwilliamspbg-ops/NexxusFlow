@@ -89,7 +89,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: "1.25"
           cache-dependency-path: labs/path-1-sovereign-foundations/chapter-jwt-auth/go.sum
 
       - name: Check Go formatting
@@ -158,6 +158,7 @@ jobs:
           format: sarif
           output: trivy-image-results.sarif
           severity: HIGH,CRITICAL
+          exit-code: "1" # Fail the build if vulnerabilities are found
 
       - name: Upload Trivy results
         uses: github/codeql-action/upload-sarif@v3
