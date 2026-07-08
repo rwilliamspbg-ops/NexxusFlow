@@ -1,6 +1,15 @@
-//! Narrative Engine — XState-like state machine for branching lab scenarios
+//! # Narrative Engine
 //!
-//! Provides thread-safe mutation of real lab state via narrative decision points.
+//! The Narrative Engine is a core component of the NexxusFlow educational platform.
+//! It provides a thread-safe, state-machine-like structure for managing and
+//! mutating the state of a laboratory environment.
+//!
+//! ## Educational Extension: How to Add New Mutations
+//! To add a new type of lab mutation (e.g., "Packet Drop"):
+//! 1. Add a new field to the \`LabState\` struct.
+//! 2. Implement a new method on \`LabState\` to mutate that field.
+//! 3. Update the Go backend's \`applyMutation\` method to call this new logic.
+//! 4. Add a corresponding test case in the \`tests\` module below.
 
 use std::collections::HashMap;
 
@@ -13,9 +22,12 @@ pub enum FailureCause {
 }
 
 /// Lab State Structure — holds all mutable runtime state for a running lab session.
+///
+/// This struct is the "Single Source of Truth" for the current lab's environment variables,
+/// such as injected latency or simulated network failures.
 #[derive(Debug, Clone, Default)]
 pub struct LabState {
-    /// Latency injection value in milliseconds (set by `InjectLatency` decision payload)
+    /// Latency injection value in milliseconds (set by \`InjectLatency\` decision payload)
     pub latency_injected_ms: Option<u64>,
     /// Network partition channels (MCR spray disabled channels)
     pub network_partitions: Vec<String>,
@@ -27,6 +39,10 @@ impl LabState {
     /// Inject latency via mutation — converts microseconds to milliseconds.
     ///
     /// Validates that delay_us is in (0, 1_000_000).
+    ///
+    /// ### Educational Note
+    /// Microseconds are used for high-precision control, but the state tracks
+    /// milliseconds for easier visualization in the frontend.
     pub fn inject_latency(&mut self, delay_us: u32) -> Result<&mut Self, String> {
         if delay_us == 0 {
             return Err("delay_us must be > 0".to_string());

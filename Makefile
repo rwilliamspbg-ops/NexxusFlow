@@ -73,6 +73,14 @@ smoke-jwt-staging: ## Validate the staged Kubernetes manifests for the JWT auth 
 smoke-jwt-staging-kind: ## Probe the live kind-based staging deployment endpoints
 	bash scripts/smoke-jwt-staging-kind.sh
 
+education-demo: ## Start the full educational lab environment (Backend + Observability + Frontend)
+	@echo "🚀 Starting NexxusFlow Educational Stack..."
+	docker compose -f labs/path-1-sovereign-foundations/chapter-jwt-auth/docker-compose.yml up --build -d
+	@echo "✨ Stack is up!"
+	@echo "🔗 JWT Backend: http://localhost:8080"
+	@echo "🔗 Prometheus:  http://localhost:9090"
+	@echo "🔗 Frontend:    (Run 'cd frontend && npm run dev' to start UI locally)"
+
 walkthrough-jwt-lab: ## Run the local JWT lab walkthrough end to end
 	bash scripts/walkthrough-jwt-lab.sh
 

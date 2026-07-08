@@ -22,11 +22,13 @@ func decodeJSONResponse[T any](t *testing.T, recorder *httptest.ResponseRecorder
 
 func testConfig() appConfig {
 	return appConfig{
-		port:      "8080",
-		secretKey: "test-secret",
-		issuer:    "test-issuer",
-		audience:  "test-audience",
-		tokenTTL:  15 * time.Minute,
+		port:            "8080",
+		secretKey:       "test-secret",
+		issuer:          "test-issuer",
+		audience:        "test-audience",
+		tokenTTL:        15 * time.Minute,
+		rateLimitBurst:  5,
+		rateLimitRefill: 1 * time.Second,
 	}
 }
 
