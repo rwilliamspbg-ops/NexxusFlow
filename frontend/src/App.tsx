@@ -9,6 +9,8 @@ function App() {
   const [role, setRole] = useState('admin');
   const [metrics, setMetrics] = useState<any>(null);
   const [status, setStatus] = useState('Idle');
+  const [isIssuing, setIsIssuing] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
 
   const fetchMetrics = async () => {
     try {
@@ -27,6 +29,7 @@ function App() {
 
   const handleAuth = async () => {
     setStatus('Issuing Token...');
+    setIsIssuing(true);
     try {
       const res = await fetch(API_BASE + '/auth', {
         method: 'POST',
@@ -40,14 +43,17 @@ function App() {
       } else {
         setStatus('Error: ' + data.error);
       }
-    } catch (e) {
+    } catch {
       setStatus('Connection Failed');
+    } finally {
+      setIsIssuing(false);
     }
   };
 
   const handleRevoke = async () => {
     if (!token) return;
     setStatus('Revoking...');
+    setIsRevoking(true);
     try {
       const res = await fetch(API_BASE + '/revoke', {
         method: 'POST',
@@ -55,8 +61,10 @@ function App() {
       });
       const data = await res.json();
       setStatus(data.status || data.error);
-    } catch (e) {
+    } catch {
       setStatus('Revocation Failed');
+    } finally {
+      setIsRevoking(false);
     }
   };
 
@@ -81,16 +89,18 @@ function App() {
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">User ID</label>
+              <label htmlFor="userId" className="block text-sm font-medium text-slate-400 mb-1">User ID</label>
               <input
+                id="userId"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-400 mb-1">Role</label>
+              <label htmlFor="role" className="block text-sm font-medium text-slate-400 mb-1">Role</label>
               <select
+                id="role"
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
@@ -105,16 +115,17 @@ function App() {
           <div className="flex gap-3 mb-6">
             <button
               onClick={handleAuth}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+              disabled={isIssuing || isRevoking}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
             >
-              <RefreshCw className="w-4 h-4" /> Issue Token
+              <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} /> {isIssuing ? 'Issuing...' : 'Issue Token'}
             </button>
             <button
               onClick={handleRevoke}
-              disabled={!token}
-              className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+              disabled={!token || isIssuing || isRevoking}
+              className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
             >
-              <Trash2 className="w-4 h-4" /> Revoke
+              <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} /> {isRevoking ? 'Revoking...' : 'Revoke'}
             </button>
           </div>
 
