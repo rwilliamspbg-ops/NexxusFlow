@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key } from 'lucide-react';
+import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
 function App() {
   const [token, setToken] = useState<string>('');
+  const [copied, setCopied] = useState(false);
   const [userId, setUserId] = useState('student_01');
   const [role, setRole] = useState('admin');
   const [metrics, setMetrics] = useState<any>(null);
@@ -65,6 +66,17 @@ function App() {
       setStatus('Revocation Failed');
     } finally {
       setIsRevoking(false);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!token) return;
+    try {
+      await navigator.clipboard.writeText(token);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy token to clipboard', e);
     }
   };
 
@@ -131,7 +143,26 @@ function App() {
 
           {token && (
             <div className="mt-6">
-              <label className="block text-sm font-medium text-slate-400 mb-1">Active JWT</label>
+              <div className="flex justify-between items-center mb-1.5">
+                <label className="block text-sm font-medium text-slate-400">Active JWT</label>
+                <button
+                  onClick={handleCopy}
+                  className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                  aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard"}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      <span className="text-emerald-400 font-medium">Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
               <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 break-all font-mono text-xs text-emerald-300">
                 {token}
               </div>
