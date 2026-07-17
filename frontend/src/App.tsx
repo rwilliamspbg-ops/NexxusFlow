@@ -3,6 +3,24 @@ import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check } from 'lucide-re
 
 const API_BASE = 'http://localhost:8080';
 
+const decodePayload = (jwt: string): Record<string, any> | null => {
+  try {
+    const parts = jwt.split('.');
+    if (parts.length !== 3) return null;
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonPayload);
+  } catch {
+    return null;
+  }
+};
+
 function App() {
   const [token, setToken] = useState<string>('');
   const [copied, setCopied] = useState(false);
@@ -141,31 +159,47 @@ function App() {
             </button>
           </div>
 
-          {token && (
-            <div className="mt-6">
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="block text-sm font-medium text-slate-400">Active JWT</label>
-                <button
-                  onClick={handleCopy}
-                  className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                  aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard"}
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-emerald-400 font-medium">Copied!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy</span>
-                    </>
-                  )}
-                </button>
+          {token ? (
+            <div className="mt-6 space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label className="block text-sm font-medium text-slate-400">Active JWT</label>
+                  <button
+                    onClick={handleCopy}
+                    className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard"}
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400 font-medium">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 break-all font-mono text-xs text-emerald-300">
+                  {token}
+                </div>
               </div>
-              <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 break-all font-mono text-xs text-emerald-300">
-                {token}
+
+              <div>
+                <span className="block text-sm font-medium text-slate-400 mb-1.5">Decoded Payload (Claims)</span>
+                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap break-all">
+                  {JSON.stringify(decodePayload(token), null, 2)}
+                </div>
               </div>
+            </div>
+          ) : (
+            <div className="mt-6 p-6 rounded-xl border border-dashed border-slate-700 bg-slate-900/30 text-center">
+              <p className="text-sm text-slate-400">
+                No active JWT. Fill in the credentials above and click{" "}
+                <strong className="text-emerald-400 font-semibold">Issue Token</strong> to generate one.
+              </p>
             </div>
           )}
         </section>
