@@ -102,62 +102,73 @@ function App() {
     <div className="min-h-screen bg-slate-900 text-slate-100 p-8 font-sans">
       <header className="max-w-6xl mx-auto flex justify-between items-center mb-12">
         <div className="flex items-center gap-3">
-          <Shield className="w-10 h-10 text-emerald-400" />
+          <Shield className="w-10 h-10 text-emerald-400" aria-hidden="true" />
           <h1 className="text-3xl font-bold tracking-tight">NexxusFlow <span className="text-emerald-400">JWT Lab</span></h1>
         </div>
         <div className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
-          <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
-          <span className="text-sm font-medium">System Status: {status}</span>
+          <Activity className="w-4 h-4 text-emerald-400 animate-pulse" aria-hidden="true" />
+          <span className="text-sm font-medium" role="status" aria-live="polite">System Status: {status}</span>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         <section className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
           <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Key className="w-5 h-5 text-emerald-400" /> Token Management
+            <Key className="w-5 h-5 text-emerald-400" aria-hidden="true" /> Token Management
           </h2>
 
-          <div className="space-y-4 mb-6">
-            <div>
-              <label htmlFor="userId" className="block text-sm font-medium text-slate-400 mb-1">User ID</label>
-              <input
-                id="userId"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
-              />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!isIssuing && !isRevoking) {
+                handleAuth();
+              }
+            }}
+            className="mb-6"
+          >
+            <div className="space-y-4 mb-6">
+              <div>
+                <label htmlFor="userId" className="block text-sm font-medium text-slate-400 mb-1">User ID</label>
+                <input
+                  id="userId"
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="role" className="block text-sm font-medium text-slate-400 mb-1">Role</label>
+                <select
+                  id="role"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="operator">Operator</option>
+                  <option value="viewer">Viewer</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-slate-400 mb-1">Role</label>
-              <select
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
-              >
-                <option value="admin">Admin</option>
-                <option value="operator">Operator</option>
-                <option value="viewer">Viewer</option>
-              </select>
-            </div>
-          </div>
 
-          <div className="flex gap-3 mb-6">
-            <button
-              onClick={handleAuth}
-              disabled={isIssuing || isRevoking}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-            >
-              <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} /> {isIssuing ? 'Issuing...' : 'Issue Token'}
-            </button>
-            <button
-              onClick={handleRevoke}
-              disabled={!token || isIssuing || isRevoking}
-              className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
-            >
-              <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} /> {isRevoking ? 'Revoking...' : 'Revoke'}
-            </button>
-          </div>
+            <div className="flex gap-3">
+              <button
+                type="submit"
+                disabled={isIssuing || isRevoking}
+                className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+              >
+                <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" /> {isIssuing ? 'Issuing...' : 'Issue Token'}
+              </button>
+              <button
+                type="button"
+                onClick={handleRevoke}
+                disabled={!token || isIssuing || isRevoking}
+                className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
+              >
+                <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} aria-hidden="true" /> {isRevoking ? 'Revoking...' : 'Revoke'}
+              </button>
+            </div>
+          </form>
 
           {token ? (
             <div className="mt-6 space-y-4">
@@ -171,12 +182,12 @@ function App() {
                   >
                     {copied ? (
                       <>
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
                         <span className="text-emerald-400 font-medium">Copied!</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3.5 h-3.5" />
+                        <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>Copy</span>
                       </>
                     )}
@@ -206,7 +217,7 @@ function App() {
 
         <section className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
           <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-emerald-400" /> Live Metrics
+            <Activity className="w-5 h-5 text-emerald-400" aria-hidden="true" /> Live Metrics
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
