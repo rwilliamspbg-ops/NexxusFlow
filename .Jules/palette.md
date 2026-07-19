@@ -1,3 +1,7 @@
+## 2025-03-10 - [Tailwind CDN Style Injection Timing in Headless Verification]
+**Learning:** In projects utilizing a CDN-hosted Tailwind CSS runtime compiler, utility classes generated on dynamic React state updates are compiled asynchronously via a browser MutationObserver. Verification tools like Playwright may capture screen state immediately following DOM updates but prior to Tailwind compiling and injecting the updated styles, causing styling to appear unapplied in screenshots.
+**Action:** Always introduce a brief wait (e.g. `page.wait_for_timeout(500)`) in headless browser scripts after DOM state assertions to guarantee the Tailwind CDN observer has finished injecting styles before capturing screenshots.
+
 ## 2025-03-09 - [Keyboard Navigation and Async Visual Feedback in JWT Lab]
 **Learning:** For command-center/dashboard interfaces such as the JWT authorization lab, accessibility and real-time state feedback are critical to preventing double submissions and ensuring users with adaptive technologies can navigate smoothly. Explicit focus ring offsets allow contrast boundaries against dark background components, and associating label attributes with corresponding input/select ids ensures screen readers announce descriptive cues.
 **Action:** Always map `<label>` to `<input>` or `<select>` via semantic `htmlFor` and `id` properties, style buttons with `focus-visible:` to support custom keyboard focus rings, and disable buttons while injecting animations (e.g. `animate-spin` or `animate-pulse`) during ongoing asynchronous operations.
