@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
@@ -144,11 +144,14 @@ function App() {
           >
             <div className="space-y-4 mb-6">
               <div>
-                <label htmlFor="userId" className="block text-sm font-medium text-slate-400 mb-1">User ID</label>
+                <label htmlFor="userId" className="block text-sm font-medium text-slate-400 mb-1">
+                  User ID <span className="text-rose-500" aria-hidden="true">*</span>
+                </label>
                 <input
                   id="userId"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
+                  required
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
                 />
               </div>
@@ -256,10 +259,38 @@ function App() {
 }
 
 function MetricCard({ title, value, color }: { title: string, value: number | string, color: string }) {
+  const [highlight, setHighlight] = useState(false);
+  const prevValue = useRef(value);
+
+  useEffect(() => {
+    if (prevValue.current !== value) {
+      setHighlight(true);
+      prevValue.current = value;
+      const timer = setTimeout(() => setHighlight(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [value]);
+
+  let highlightClass = 'border-emerald-500/50 bg-slate-800/80 shadow-lg shadow-emerald-500/5';
+  if (color.includes('rose')) {
+    highlightClass = 'border-rose-500/50 bg-slate-800/80 shadow-lg shadow-rose-500/5';
+  } else if (color.includes('amber')) {
+    highlightClass = 'border-amber-500/50 bg-slate-800/80 shadow-lg shadow-amber-500/5';
+  } else if (color.includes('blue')) {
+    highlightClass = 'border-blue-500/50 bg-slate-800/80 shadow-lg shadow-blue-500/5';
+  }
+
   return (
-    <div className="bg-slate-900 p-4 rounded-xl border border-slate-700">
+    <div
+      className={`p-4 rounded-xl border transition-all duration-300 ${
+        highlight ? `${highlightClass} scale-[1.02]` : 'bg-slate-900 border-slate-700'
+      }`}
+      aria-live="polite"
+    >
       <div className="text-xs font-medium text-slate-500 uppercase mb-1">{title}</div>
-      <div className={'text-2xl font-bold ' + color}>{value}</div>
+      <div className={`text-2xl font-bold transition-transform duration-300 ${color} ${highlight ? 'scale-105 origin-left' : ''}`}>
+        {value}
+      </div>
     </div>
   );
 }
