@@ -105,8 +105,24 @@ function App() {
           <Shield className="w-10 h-10 text-emerald-400" aria-hidden="true" />
           <h1 className="text-3xl font-bold tracking-tight">NexxusFlow <span className="text-emerald-400">JWT Lab</span></h1>
         </div>
-        <div className="flex items-center gap-2 bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
-          <Activity className="w-4 h-4 text-emerald-400 animate-pulse" aria-hidden="true" />
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
+          status === 'Issuing Token...' || status === 'Revoking...'
+            ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+            : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error')
+            ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+            : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked')
+            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            : 'bg-slate-800 border-slate-700 text-slate-300'
+        }`}>
+          {status === 'Issuing Token...' || status === 'Revoking...' ? (
+            <RefreshCw className="w-4 h-4 animate-spin text-amber-400" aria-hidden="true" />
+          ) : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? (
+            <Activity className="w-4 h-4 text-rose-400 animate-bounce" style={{ animationDuration: '2s' }} aria-hidden="true" />
+          ) : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked') ? (
+            <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+          ) : (
+            <Activity className="w-4 h-4 text-emerald-400 animate-pulse" aria-hidden="true" />
+          )}
           <span className="text-sm font-medium" role="status" aria-live="polite">System Status: {status}</span>
         </div>
       </header>
