@@ -1,3 +1,7 @@
+## 2025-03-11 - [Stateful Visual Pulse and Accessible Announcements on Real-Time Poll Updates]
+**Learning:** For real-time metrics dashboards, changes resulting from dynamic background polling (e.g. 2-second intervals) are easily missed by sighted users and completely hidden from screen reader users. Introducing a temporary visual transition (border color highlight + scale pulse) immediately directs attention to updating stats, while pairing it with `aria-live="polite"` ensures adaptive technologies announce the new values seamlessly.
+**Action:** Track previous values of dynamic metrics using standard React state/references (`useRef` and `useEffect`) and trigger a temporary boolean highlight class state to enable smooth transitions. Always append `aria-live="polite"` to the container elements of dynamic metrics.
+
 ## 2025-03-10 - [Tailwind CDN Style Injection Timing in Headless Verification]
 **Learning:** In projects utilizing a CDN-hosted Tailwind CSS runtime compiler, utility classes generated on dynamic React state updates are compiled asynchronously via a browser MutationObserver. Verification tools like Playwright may capture screen state immediately following DOM updates but prior to Tailwind compiling and injecting the updated styles, causing styling to appear unapplied in screenshots.
 **Action:** Always introduce a brief wait (e.g. `page.wait_for_timeout(500)`) in headless browser scripts after DOM state assertions to guarantee the Tailwind CDN observer has finished injecting styles before capturing screenshots.
