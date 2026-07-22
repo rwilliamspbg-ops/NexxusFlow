@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check } from 'lucide-react';
+import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -152,7 +152,7 @@ function App() {
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   required
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none outline-none transition-all duration-150"
                 />
               </div>
               <div>
@@ -161,7 +161,7 @@ function App() {
                   id="role"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none outline-none transition-all duration-150"
                 >
                   <option value="admin">Admin</option>
                   <option value="operator">Operator</option>
@@ -174,6 +174,7 @@ function App() {
               <button
                 type="submit"
                 disabled={isIssuing || isRevoking}
+                title={isIssuing || isRevoking ? "Action in progress" : ""}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
                 <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" /> {isIssuing ? 'Issuing...' : 'Issue Token'}
@@ -182,6 +183,7 @@ function App() {
                 type="button"
                 onClick={handleRevoke}
                 disabled={!token || isIssuing || isRevoking}
+                title={!token ? "No active token to revoke" : isIssuing || isRevoking ? "Action in progress" : ""}
                 className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
               >
                 <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} aria-hidden="true" /> {isRevoking ? 'Revoking...' : 'Revoke'}
@@ -248,8 +250,24 @@ function App() {
 
           <div className="mt-8">
              <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">Grafana Observability</h3>
-             <div className="aspect-video bg-slate-900 rounded-lg border border-slate-700 flex items-center justify-center">
-                <span className="text-slate-500 text-sm italic">Grafana Dashboard (Iframe placeholder)</span>
+             <div className="aspect-video bg-slate-900 rounded-lg border border-slate-700 flex flex-col items-center justify-center p-6 text-center gap-3">
+                <div className="bg-slate-800 p-3 rounded-full border border-slate-700 text-emerald-400 animate-pulse" style={{ animationDuration: '3s' }}>
+                  <Activity className="w-6 h-6" aria-hidden="true" />
+                </div>
+                <div>
+                  <span className="block text-slate-300 font-medium text-sm">Live Observability Portal</span>
+                  <span className="block text-slate-500 text-xs mt-1">Visualize real-time authorization requests, rate-limiting tokens, and container health.</span>
+                </div>
+                <a
+                  href="http://localhost:3000"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                  aria-label="Launch live Grafana dashboard in a new tab"
+                >
+                  <span>Launch Live Dashboard</span>
+                  <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                </a>
              </div>
           </div>
         </section>
