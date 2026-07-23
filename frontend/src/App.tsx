@@ -31,6 +31,7 @@ function App() {
   const [status, setStatus] = useState('Idle');
   const [isIssuing, setIsIssuing] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
 
   const fetchMetrics = async () => {
     try {
@@ -93,6 +94,7 @@ function App() {
     try {
       await navigator.clipboard.writeText(token);
       setCopied(true);
+      setAnnouncement('Token copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {
       console.error('Failed to copy token to clipboard', e);
@@ -107,6 +109,9 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-8 font-sans">
+      <div className="sr-only" aria-live="polite" role="status">
+        {announcement}
+      </div>
       <header className="max-w-6xl mx-auto flex justify-between items-center mb-12">
         <div className="flex items-center gap-3">
           <Shield className="w-10 h-10 text-emerald-400" aria-hidden="true" />
@@ -215,7 +220,10 @@ function App() {
                   <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setShowToken(!showToken)}
+                      onClick={() => {
+                        setShowToken(!showToken);
+                        setAnnouncement(showToken ? "Raw JWT hidden" : "Raw JWT shown");
+                      }}
                       className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                       aria-label={showToken ? "Hide raw JWT" : "Show raw JWT"}
                     >
@@ -248,6 +256,19 @@ function App() {
                           <span>Copy</span>
                         </>
                       )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setToken('');
+                        setStatus('Idle');
+                        setAnnouncement('Token cleared and system status reset to Idle');
+                      }}
+                      className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-rose-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
+                      aria-label="Clear active token"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                      <span>Clear</span>
                     </button>
                   </div>
                 </div>
