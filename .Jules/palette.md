@@ -1,3 +1,7 @@
+## 2026-07-24 - [Tactile JWT Container Visual Feedback and Dynamic Educational RBAC Role Helper Text]
+**Learning:** In JWT educational dashboards, visual actions (like copying a cryptographic token) benefit immensely from tactile visual feedback that scales and shifts colors dynamically to reassure the user. Furthermore, dynamic and accessible helper descriptions under role selection dropdowns map claims to RBAC permission policies instantly in real-time, greatly improving both usability and context for developers.
+**Action:** Enhance token blocks with Tailwind transitions that scale slightly, change border color (e.g. to emerald), and apply a subtle glow upon copying. Map static role helper descriptions to dynamic values synced with select dropdown state to provide interactive, screen-reader readable feedback.
+
 ## 2025-03-14 - [Transient Feedback Announcements with Visually-Hidden Live Regions]
 **Learning:** Dynamic single-page client dashboards often have transient state updates (e.g., "Copied!", "Cleared") and toggle visibility shifts that are visually obvious to sighted users but completely silent to screen readers. Introducing a dedicated, visually-hidden `sr-only` aria-live region allows the application to cleanly announce these ephemeral actions without cluttering the visible UI.
 **Action:** Pair every transient button state update (like Copy or Clear) or custom disclosure toggle with a descriptive state update to a dedicated `aria-live="polite"` DOM element.
