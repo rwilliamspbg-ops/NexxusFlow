@@ -21,6 +21,12 @@ const decodePayload = (jwt: string): Record<string, any> | null => {
   }
 };
 
+const ROLE_DESCRIPTIONS: Record<string, string> = {
+  admin: 'Full access. Admin claim with permissions to invoke state mutations and bypass standard security restrictions.',
+  operator: 'Read-write access. Operator claim allowed to trigger actions but subject to rate limiting.',
+  viewer: 'Read-only access. Viewer claim restricted from executing state mutations or performing administrative tasks.',
+};
+
 function App() {
   const [token, setToken] = useState<string>('');
   const [showToken, setShowToken] = useState(false);
@@ -185,8 +191,8 @@ function App() {
                   <option value="operator">Operator</option>
                   <option value="viewer">Viewer</option>
                 </select>
-                <p id="role-helper" className="text-xs text-slate-500 mt-1">
-                  Assigned permissions role added to the JWT payload claims for role-based access control.
+                <p id="role-helper" className="text-xs text-slate-500 mt-1 transition-all duration-300">
+                  {ROLE_DESCRIPTIONS[role] || 'Assigned permissions role added to the JWT payload claims for role-based access control.'}
                 </p>
               </div>
             </div>
@@ -272,7 +278,11 @@ function App() {
                     </button>
                   </div>
                 </div>
-                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 break-all font-mono text-xs text-emerald-300">
+                <div className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 ${
+                  copied
+                    ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
+                    : 'border-slate-800 text-emerald-300'
+                }`}>
                   {getDisplayToken(token)}
                 </div>
               </div>
