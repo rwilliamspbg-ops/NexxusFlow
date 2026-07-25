@@ -107,10 +107,19 @@ function App() {
     }
   };
 
-  const getDisplayToken = (t: string) => {
-    if (showToken) return t;
-    if (t.length <= 24) return t;
-    return `${t.slice(0, 12)}...${t.slice(-12)}`;
+  const renderTokenParts = (t: string) => {
+    if (!showToken) return t.length <= 24 ? t : `${t.slice(0, 12)}...${t.slice(-12)}`;
+    const parts = t.split('.');
+    if (parts.length !== 3) return t;
+    return (
+      <>
+        <span className="text-rose-400 font-semibold" title="Header: Algorithm & Type">{parts[0]}</span>
+        <span className="text-slate-500">.</span>
+        <span className="text-indigo-400 font-semibold" title="Payload: Claims & Data">{parts[1]}</span>
+        <span className="text-slate-500">.</span>
+        <span className="text-cyan-400 font-semibold" title="Signature: Security Verification Key">{parts[2]}</span>
+      </>
+    );
   };
 
   return (
@@ -278,18 +287,26 @@ function App() {
                     </button>
                   </div>
                 </div>
-                <div className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 ${
-                  copied
-                    ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
-                    : 'border-slate-800 text-emerald-300'
-                }`}>
-                  {getDisplayToken(token)}
+                <div
+                  tabIndex={0}
+                  aria-label="Active JSON Web Token container"
+                  className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                    copied
+                      ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
+                      : 'border-slate-800 text-emerald-300'
+                  }`}
+                >
+                  {renderTokenParts(token)}
                 </div>
               </div>
 
               <div>
                 <span className="block text-sm font-medium text-slate-400 mb-1.5">Decoded Payload (Claims)</span>
-                <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap break-all">
+                <div
+                  tabIndex={0}
+                  aria-label="Decoded payload claims list"
+                  className="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                >
                   {JSON.stringify(decodePayload(token), null, 2)}
                 </div>
               </div>
