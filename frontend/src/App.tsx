@@ -107,6 +107,30 @@ function App() {
     }
   };
 
+  const stateRef = useRef({ token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy });
+  stateRef.current = { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy } = stateRef.current;
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const key = e.key.toLowerCase();
+        if (key === 'i' && !isIssuing && !isRevoking) {
+          e.preventDefault();
+          handleAuth();
+        } else if (key === 'r' && token && !isIssuing && !isRevoking) {
+          e.preventDefault();
+          handleRevoke();
+        } else if (key === 'c' && token) {
+          e.preventDefault();
+          handleCopy();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const renderTokenParts = (t: string) => {
     if (!showToken) return t.length <= 24 ? t : `${t.slice(0, 12)}...${t.slice(-12)}`;
     const parts = t.split('.');
@@ -179,6 +203,7 @@ function App() {
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   required
+                  aria-required="true"
                   placeholder="e.g., student_01"
                   aria-describedby="userId-helper"
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none outline-none transition-all duration-150"
@@ -210,19 +235,23 @@ function App() {
               <button
                 type="submit"
                 disabled={isIssuing || isRevoking}
-                title={isIssuing || isRevoking ? "Action in progress" : ""}
+                title={isIssuing || isRevoking ? "Action in progress" : "Issue Token (Alt + I)"}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
-                <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" /> {isIssuing ? 'Issuing...' : 'Issue Token'}
+                <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" />
+                <span>{isIssuing ? 'Issuing...' : 'Issue Token'}</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-300 bg-slate-900/40 border border-slate-500/30 rounded" aria-hidden="true">Alt+I</kbd>
               </button>
               <button
                 type="button"
                 onClick={handleRevoke}
                 disabled={!token || isIssuing || isRevoking}
-                title={!token ? "No active token to revoke" : isIssuing || isRevoking ? "Action in progress" : ""}
+                title={!token ? "No active token to revoke" : isIssuing || isRevoking ? "Action in progress" : "Revoke Token (Alt + R)"}
                 className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
               >
-                <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} aria-hidden="true" /> {isRevoking ? 'Revoking...' : 'Revoke'}
+                <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} aria-hidden="true" />
+                <span>{isRevoking ? 'Revoking...' : 'Revoke'}</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-300 bg-slate-900/40 border border-slate-500/30 rounded" aria-hidden="true">Alt+R</kbd>
               </button>
             </div>
           </form>
@@ -258,7 +287,8 @@ function App() {
                       type="button"
                       onClick={handleCopy}
                       className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                      aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard"}
+                      aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard (Alt + C)"}
+                      title="Copy token to clipboard (Alt + C)"
                     >
                       {copied ? (
                         <>
@@ -269,6 +299,7 @@ function App() {
                         <>
                           <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Copy</span>
+                          <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+C</kbd>
                         </>
                       )}
                     </button>
