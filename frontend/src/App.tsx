@@ -107,12 +107,19 @@ function App() {
     }
   };
 
-  const stateRef = useRef({ token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy });
-  stateRef.current = { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy };
+  const handleClear = () => {
+    if (!token) return;
+    setToken('');
+    setStatus('Idle');
+    setAnnouncement('Token cleared and system status reset to Idle');
+  };
+
+  const stateRef = useRef({ token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy, handleClear });
+  stateRef.current = { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy, handleClear };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy } = stateRef.current;
+      const { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy, handleClear } = stateRef.current;
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const key = e.key.toLowerCase();
         if (key === 'i' && !isIssuing && !isRevoking) {
@@ -124,6 +131,9 @@ function App() {
         } else if (key === 'c' && token) {
           e.preventDefault();
           handleCopy();
+        } else if (key === 'x' && token) {
+          e.preventDefault();
+          handleClear();
         }
       }
     };
@@ -195,13 +205,19 @@ function App() {
           >
             <div className="space-y-4 mb-6">
               <div>
-                <label htmlFor="userId" className="block text-sm font-medium text-slate-400 mb-1">
-                  User ID <span className="text-rose-500" aria-hidden="true">*</span>
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="userId" className="block text-sm font-medium text-slate-400">
+                    User ID <span className="text-rose-500" aria-hidden="true">*</span>
+                  </label>
+                  <span className="text-xs text-slate-500" aria-live="polite">
+                    {userId.length}/128
+                  </span>
+                </div>
                 <input
                   id="userId"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
+                  maxLength={128}
                   required
                   aria-required="true"
                   placeholder="e.g., student_01"
@@ -305,16 +321,14 @@ function App() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setToken('');
-                        setStatus('Idle');
-                        setAnnouncement('Token cleared and system status reset to Idle');
-                      }}
+                      onClick={handleClear}
                       className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-rose-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
-                      aria-label="Clear active token"
+                      aria-label="Clear active token (Alt + X)"
+                      title="Clear active token (Alt + X)"
                     >
                       <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>Clear</span>
+                      <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+X</kbd>
                     </button>
                   </div>
                 </div>
