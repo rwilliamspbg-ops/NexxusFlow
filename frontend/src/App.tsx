@@ -56,6 +56,7 @@ function App() {
 
   const handleAuth = async () => {
     setStatus('Issuing Token...');
+    setAnnouncement('Issuing new JSON Web Token for User ' + userId + ' with role ' + role);
     setIsIssuing(true);
     try {
       const res = await fetch(API_BASE + '/auth', {
@@ -67,11 +68,14 @@ function App() {
       if (data.token) {
         setToken(data.token);
         setStatus('Token Issued');
+        setAnnouncement('Token successfully issued for user ' + userId);
       } else {
         setStatus('Error: ' + data.error);
+        setAnnouncement('Error issuing token: ' + data.error);
       }
     } catch {
       setStatus('Connection Failed');
+      setAnnouncement('Connection failed while issuing token');
     } finally {
       setIsIssuing(false);
     }
@@ -80,6 +84,7 @@ function App() {
   const handleRevoke = async () => {
     if (!token) return;
     setStatus('Revoking...');
+    setAnnouncement('Revoking active token');
     setIsRevoking(true);
     try {
       const res = await fetch(API_BASE + '/revoke', {
@@ -87,9 +92,12 @@ function App() {
         headers: { 'Authorization': 'Bearer ' + token },
       });
       const data = await res.json();
-      setStatus(data.status || data.error);
+      const nextStatus = data.status || data.error;
+      setStatus(nextStatus);
+      setAnnouncement('Token revocation outcome: ' + nextStatus);
     } catch {
       setStatus('Revocation Failed');
+      setAnnouncement('Revocation failed due to network error');
     } finally {
       setIsRevoking(false);
     }
@@ -209,7 +217,16 @@ function App() {
                   <label htmlFor="userId" className="block text-sm font-medium text-slate-400">
                     User ID <span className="text-rose-500" aria-hidden="true">*</span>
                   </label>
-                  <span className="text-xs text-slate-500" aria-live="polite">
+                  <span
+                    className={`text-xs transition-colors duration-200 ${
+                      userId.length === 128
+                        ? 'text-rose-500 font-semibold animate-pulse'
+                        : userId.length >= 110
+                        ? 'text-amber-500 font-medium'
+                        : 'text-slate-500'
+                    }`}
+                    aria-live="polite"
+                  >
                     {userId.length}/128
                   </span>
                 </div>
@@ -252,6 +269,7 @@ function App() {
                 type="submit"
                 disabled={isIssuing || isRevoking}
                 title={isIssuing || isRevoking ? "Action in progress" : "Issue Token (Alt + I)"}
+                aria-keyshortcuts="Alt+I"
                 className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
                 <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" />
@@ -263,6 +281,7 @@ function App() {
                 onClick={handleRevoke}
                 disabled={!token || isIssuing || isRevoking}
                 title={!token ? "No active token to revoke" : isIssuing || isRevoking ? "Action in progress" : "Revoke Token (Alt + R)"}
+                aria-keyshortcuts="Alt+R"
                 className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
               >
                 <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} aria-hidden="true" />
@@ -284,6 +303,8 @@ function App() {
                         setShowToken(!showToken);
                         setAnnouncement(showToken ? "Raw JWT hidden" : "Raw JWT shown");
                       }}
+                      aria-expanded={showToken}
+                      aria-controls="raw-token-container"
                       className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                       aria-label={showToken ? "Hide raw JWT" : "Show raw JWT"}
                     >
@@ -302,6 +323,7 @@ function App() {
                     <button
                       type="button"
                       onClick={handleCopy}
+                      aria-keyshortcuts="Alt+C"
                       className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                       aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard (Alt + C)"}
                       title="Copy token to clipboard (Alt + C)"
@@ -322,6 +344,7 @@ function App() {
                     <button
                       type="button"
                       onClick={handleClear}
+                      aria-keyshortcuts="Alt+X"
                       className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-rose-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
                       aria-label="Clear active token (Alt + X)"
                       title="Clear active token (Alt + X)"
@@ -333,6 +356,7 @@ function App() {
                   </div>
                 </div>
                 <div
+                  id="raw-token-container"
                   tabIndex={0}
                   aria-label="Active JSON Web Token container"
                   className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
