@@ -250,7 +250,12 @@ function App() {
                 <select
                   id="role"
                   value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={(e) => {
+                    const nextRole = e.target.value;
+                    setRole(nextRole);
+                    const desc = ROLE_DESCRIPTIONS[nextRole] || '';
+                    setAnnouncement(`Role changed to ${nextRole}. ${desc}`);
+                  }}
                   aria-describedby="role-helper"
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none outline-none transition-all duration-150"
                 >
@@ -367,6 +372,26 @@ function App() {
                 >
                   {renderTokenParts(token)}
                 </div>
+                {showToken && (
+                  <div
+                    className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1"
+                    aria-label="JWT segment color guide"
+                    role="list"
+                  >
+                    <div className="flex items-center gap-1.5" role="listitem">
+                      <span className="w-2 h-2 rounded-full bg-rose-400 block shrink-0" aria-hidden="true" />
+                      <span>Rose: Header</span>
+                    </div>
+                    <div className="flex items-center gap-1.5" role="listitem">
+                      <span className="w-2 h-2 rounded-full bg-indigo-400 block shrink-0" aria-hidden="true" />
+                      <span>Indigo: Payload</span>
+                    </div>
+                    <div className="flex items-center gap-1.5" role="listitem">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 block shrink-0" aria-hidden="true" />
+                      <span>Cyan: Signature</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
