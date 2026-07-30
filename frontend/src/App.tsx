@@ -244,6 +244,23 @@ function App() {
                 <p id="userId-helper" className="text-xs text-slate-500 mt-1">
                   The subject claim (sub) that uniquely identifies this user in the issued token.
                 </p>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <span className="text-xs text-slate-500 font-medium">Quick fill:</span>
+                  {['student_01', 'operator_99', 'admin_root'].map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => {
+                        setUserId(id);
+                        setAnnouncement(`User ID quick-filled to ${id}`);
+                      }}
+                      aria-label={`Quick fill User ID as ${id}`}
+                      className="text-xs bg-slate-900 hover:bg-slate-750 text-slate-400 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700/60 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    >
+                      {id}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div>
                 <label htmlFor="role" className="block text-sm font-medium text-slate-400 mb-1">Role</label>
