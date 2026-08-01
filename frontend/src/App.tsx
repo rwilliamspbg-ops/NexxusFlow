@@ -39,20 +39,43 @@ function App() {
   const [isIssuing, setIsIssuing] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [isOffline, setIsOffline] = useState(false);
+  const [isRefreshingMetrics, setIsRefreshingMetrics] = useState(false);
+  const timeoutRef = useRef<any>(null);
 
-  const fetchMetrics = async () => {
+  const fetchMetrics = async (isManual = false) => {
+    if (isManual) {
+      setIsRefreshingMetrics(true);
+    }
     try {
       const res = await fetch(API_BASE + '/metrics/snapshot');
       const data = await res.json();
       setMetrics(data);
+      setIsOffline(false);
+      if (isManual) {
+        setAnnouncement('Metrics refreshed successfully.');
+      }
     } catch (e) {
       console.error('Failed to fetch metrics', e);
+      setIsOffline(true);
+      if (isManual) {
+        setAnnouncement('Failed to refresh metrics. Backend may be offline.');
+      }
+    } finally {
+      if (isManual) {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => setIsRefreshingMetrics(false), 300);
+      }
     }
   };
 
   useEffect(() => {
-    const timer = setInterval(fetchMetrics, 2000);
-    return () => clearInterval(timer);
+    fetchMetrics();
+    const timer = setInterval(() => fetchMetrics(false), 2000);
+    return () => {
+      clearInterval(timer);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   const handleAuth = async () => {
@@ -469,9 +492,39 @@ function App() {
         </section>
 
         <section className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Activity className="w-5 h-5 text-emerald-400" aria-hidden="true" /> Live Metrics
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Activity className="w-5 h-5 text-emerald-400" aria-hidden="true" /> Live Metrics
+            </h2>
+            <div className="flex items-center gap-3">
+              <span
+                role="status"
+                aria-live="polite"
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                  isOffline
+                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                    : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                }`}
+              >
+                <span
+                  className={`w-1.5 h-1.5 rounded-full block ${
+                    isOffline ? 'bg-rose-500 animate-pulse' : 'bg-emerald-400 animate-ping'
+                  }`}
+                  aria-hidden="true"
+                />
+                {isOffline ? 'Offline' : 'Connected'}
+              </span>
+              <button
+                type="button"
+                onClick={() => fetchMetrics(true)}
+                disabled={isRefreshingMetrics}
+                aria-label="Refresh metrics"
+                className="p-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-700 border border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingMetrics ? 'animate-spin text-emerald-400' : ''}`} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <MetricCard title="Auth Success" value={metrics?.auth_success_total || 0} color="text-emerald-400" />
