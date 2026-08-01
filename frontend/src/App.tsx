@@ -31,6 +31,7 @@ function App() {
   const [token, setToken] = useState<string>('');
   const [showToken, setShowToken] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedClaims, setCopiedClaims] = useState(false);
   const [userId, setUserId] = useState('student_01');
   const [role, setRole] = useState('admin');
   const [metrics, setMetrics] = useState<any>(null);
@@ -112,6 +113,20 @@ function App() {
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {
       console.error('Failed to copy token to clipboard', e);
+    }
+  };
+
+  const handleCopyClaims = async () => {
+    if (!token) return;
+    try {
+      const decoded = decodePayload(token);
+      if (!decoded) return;
+      await navigator.clipboard.writeText(JSON.stringify(decoded, null, 2));
+      setCopiedClaims(true);
+      setAnnouncement('Decoded payload claims copied to clipboard');
+      setTimeout(() => setCopiedClaims(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy claims to clipboard', e);
     }
   };
 
@@ -412,7 +427,28 @@ function App() {
               </div>
 
               <div>
-                <span className="block text-sm font-medium text-slate-400 mb-1.5">Decoded Payload (Claims)</span>
+                <div className="flex justify-between items-center mb-1.5">
+                  <span className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</span>
+                  <button
+                    type="button"
+                    onClick={handleCopyClaims}
+                    className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700 flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    aria-label={copiedClaims ? "Claims copied to clipboard" : "Copy decoded payload claims to clipboard"}
+                    title="Copy decoded payload claims"
+                  >
+                    {copiedClaims ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" aria-hidden="true" />
+                        <span className="text-emerald-400 font-medium">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" aria-hidden="true" />
+                        <span>Copy Claims</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <div
                   tabIndex={0}
                   aria-label="Decoded payload claims list"
