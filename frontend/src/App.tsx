@@ -160,12 +160,45 @@ function App() {
     setAnnouncement('Token cleared and system status reset to Idle');
   };
 
-  const stateRef = useRef({ token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy, handleClear });
-  stateRef.current = { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy, handleClear };
+  const stateRef = useRef({
+    token,
+    isIssuing,
+    isRevoking,
+    isRefreshingMetrics,
+    handleAuth,
+    handleRevoke,
+    handleCopy,
+    handleClear,
+    handleCopyClaims,
+    fetchMetrics,
+  });
+  stateRef.current = {
+    token,
+    isIssuing,
+    isRevoking,
+    isRefreshingMetrics,
+    handleAuth,
+    handleRevoke,
+    handleCopy,
+    handleClear,
+    handleCopyClaims,
+    fetchMetrics,
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { token, isIssuing, isRevoking, handleAuth, handleRevoke, handleCopy, handleClear } = stateRef.current;
+      const {
+        token,
+        isIssuing,
+        isRevoking,
+        isRefreshingMetrics,
+        handleAuth,
+        handleRevoke,
+        handleCopy,
+        handleClear,
+        handleCopyClaims,
+        fetchMetrics,
+      } = stateRef.current;
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const key = e.key.toLowerCase();
         if (key === 'i' && !isIssuing && !isRevoking) {
@@ -180,6 +213,12 @@ function App() {
         } else if (key === 'x' && token) {
           e.preventDefault();
           handleClear();
+        } else if (key === 'p' && token) {
+          e.preventDefault();
+          handleCopyClaims();
+        } else if (key === 'm' && !isRefreshingMetrics) {
+          e.preventDefault();
+          fetchMetrics(true);
         }
       }
     };
@@ -264,6 +303,7 @@ function App() {
                         : 'text-slate-500'
                     }`}
                     aria-live="polite"
+                    aria-label={`User ID character count: ${userId.length} out of 128 limit`}
                   >
                     {userId.length}/128
                   </span>
@@ -455,19 +495,21 @@ function App() {
                   <button
                     type="button"
                     onClick={handleCopyClaims}
-                    className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700 flex items-center gap-1 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                    aria-label={copiedClaims ? "Claims copied to clipboard" : "Copy decoded payload claims to clipboard"}
-                    title="Copy decoded payload claims"
+                    aria-keyshortcuts="Alt+P"
+                    className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    aria-label={copiedClaims ? "Claims copied to clipboard" : "Copy decoded payload claims to clipboard (Alt + P)"}
+                    title="Copy decoded payload claims (Alt + P)"
                   >
                     {copiedClaims ? (
                       <>
-                        <Check className="w-3 h-3 text-emerald-400" aria-hidden="true" />
+                        <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
                         <span className="text-emerald-400 font-medium">Copied!</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="w-3 h-3" aria-hidden="true" />
+                        <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                         <span>Copy Claims</span>
+                        <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+P</kbd>
                       </>
                     )}
                   </button>
@@ -518,10 +560,13 @@ function App() {
                 type="button"
                 onClick={() => fetchMetrics(true)}
                 disabled={isRefreshingMetrics}
-                aria-label="Refresh metrics"
-                className="p-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-700 border border-slate-700 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                aria-label="Refresh metrics (Alt + M)"
+                title="Refresh metrics (Alt + M)"
+                aria-keyshortcuts="Alt+M"
+                className="p-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingMetrics ? 'animate-spin text-emerald-400' : ''}`} aria-hidden="true" />
+                <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+M</kbd>
               </button>
             </div>
           </div>
