@@ -165,6 +165,9 @@ function App() {
     isIssuing,
     isRevoking,
     isRefreshingMetrics,
+    showToken,
+    setShowToken,
+    setAnnouncement,
     handleAuth,
     handleRevoke,
     handleCopy,
@@ -177,6 +180,9 @@ function App() {
     isIssuing,
     isRevoking,
     isRefreshingMetrics,
+    showToken,
+    setShowToken,
+    setAnnouncement,
     handleAuth,
     handleRevoke,
     handleCopy,
@@ -192,6 +198,9 @@ function App() {
         isIssuing,
         isRevoking,
         isRefreshingMetrics,
+        showToken,
+        setShowToken,
+        setAnnouncement,
         handleAuth,
         handleRevoke,
         handleCopy,
@@ -219,6 +228,11 @@ function App() {
         } else if (key === 'm' && !isRefreshingMetrics) {
           e.preventDefault();
           fetchMetrics(true);
+        } else if (key === 'v' && token) {
+          e.preventDefault();
+          const nextShow = !showToken;
+          setShowToken(nextShow);
+          setAnnouncement(nextShow ? "Raw JWT shown" : "Raw JWT hidden");
         }
       }
     };
@@ -405,18 +419,22 @@ function App() {
                       }}
                       aria-expanded={showToken}
                       aria-controls="raw-token-container"
+                      aria-keyshortcuts="Alt+V"
+                      title={showToken ? "Hide raw JWT (Alt + V)" : "Show raw JWT (Alt + V)"}
                       className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                      aria-label={showToken ? "Hide raw JWT" : "Show raw JWT"}
+                      aria-label={showToken ? "Hide raw JWT (Alt + V)" : "Show raw JWT (Alt + V)"}
                     >
                       {showToken ? (
                         <>
                           <EyeOff className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Hide</span>
+                          <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+V</kbd>
                         </>
                       ) : (
                         <>
                           <Eye className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Show</span>
+                          <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+V</kbd>
                         </>
                       )}
                     </button>
