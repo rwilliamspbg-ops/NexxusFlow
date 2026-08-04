@@ -43,6 +43,10 @@ function App() {
   const [isRefreshingMetrics, setIsRefreshingMetrics] = useState(false);
   const timeoutRef = useRef<any>(null);
 
+  const trimmedUserId = userId.trim();
+  const isUserEmpty = trimmedUserId === '';
+  const hasSpaces = userId !== trimmedUserId;
+
   const fetchMetrics = async (isManual = false) => {
     if (isManual) {
       setIsRefreshingMetrics(true);
@@ -174,6 +178,7 @@ function App() {
     handleClear,
     handleCopyClaims,
     fetchMetrics,
+    isUserEmpty,
   });
   stateRef.current = {
     token,
@@ -189,6 +194,7 @@ function App() {
     handleClear,
     handleCopyClaims,
     fetchMetrics,
+    isUserEmpty,
   };
 
   useEffect(() => {
@@ -207,10 +213,11 @@ function App() {
         handleClear,
         handleCopyClaims,
         fetchMetrics,
+        isUserEmpty,
       } = stateRef.current;
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const key = e.key.toLowerCase();
-        if (key === 'i' && !isIssuing && !isRevoking) {
+        if (key === 'i' && !isIssuing && !isRevoking && !isUserEmpty) {
           e.preventDefault();
           handleAuth();
         } else if (key === 'r' && token && !isIssuing && !isRevoking) {
@@ -330,12 +337,36 @@ function App() {
                   required
                   aria-required="true"
                   placeholder="e.g., student_01"
-                  aria-describedby="userId-helper"
-                  className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none outline-none transition-all duration-150"
+                  aria-describedby="userId-helper userId-validation"
+                  className={`w-full bg-slate-900 border rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:outline-none outline-none transition-all duration-150 ${
+                    isUserEmpty
+                      ? 'border-rose-500 focus-visible:ring-rose-500'
+                      : hasSpaces
+                      ? 'border-amber-500 focus-visible:ring-amber-500'
+                      : 'border-slate-700 focus-visible:ring-emerald-500'
+                  }`}
                 />
                 <p id="userId-helper" className="text-xs text-slate-500 mt-1">
                   The subject claim (sub) that uniquely identifies this user in the issued token.
                 </p>
+                <div id="userId-validation" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium" aria-live="polite">
+                  {isUserEmpty ? (
+                    <span className="text-rose-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" aria-hidden="true" />
+                      User ID cannot be empty or only spaces.
+                    </span>
+                  ) : hasSpaces ? (
+                    <span className="text-amber-400 flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden="true" />
+                      Leading/trailing spaces will be trimmed by the server.
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400 flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                      User ID format is valid.
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <span className="text-xs text-slate-500 font-medium">Quick fill:</span>
                   {['student_01', 'operator_99', 'admin_root'].map((id) => (
@@ -381,8 +412,8 @@ function App() {
             <div className="flex gap-3">
               <button
                 type="submit"
-                disabled={isIssuing || isRevoking}
-                title={isIssuing || isRevoking ? "Action in progress" : "Issue Token (Alt + I)"}
+                disabled={isIssuing || isRevoking || isUserEmpty}
+                title={isUserEmpty ? "Cannot issue token: User ID is empty" : isIssuing || isRevoking ? "Action in progress" : "Issue Token (Alt + I)"}
                 aria-keyshortcuts="Alt+I"
                 className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
