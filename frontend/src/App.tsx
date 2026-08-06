@@ -566,7 +566,11 @@ function App() {
                 <div
                   tabIndex={0}
                   aria-label="Decoded payload claims list"
-                  className="bg-slate-950 p-4 rounded-lg border border-slate-800 font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                  className={`bg-slate-950 p-4 rounded-lg border font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all duration-300 ${
+                    copiedClaims
+                      ? 'border-amber-500 bg-amber-500/5 text-amber-200 shadow-md shadow-amber-500/5 scale-[1.01]'
+                      : 'border-slate-800'
+                  }`}
                 >
                   {JSON.stringify(decodePayload(token), null, 2)}
                 </div>
