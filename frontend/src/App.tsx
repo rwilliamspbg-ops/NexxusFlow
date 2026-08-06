@@ -42,6 +42,7 @@ function App() {
   const [isOffline, setIsOffline] = useState(false);
   const [isRefreshingMetrics, setIsRefreshingMetrics] = useState(false);
   const timeoutRef = useRef<any>(null);
+  const userIdInputRef = useRef<HTMLInputElement | null>(null);
 
   const trimmedUserId = userId.trim();
   const isUserEmpty = trimmedUserId === '';
@@ -162,6 +163,7 @@ function App() {
     setToken('');
     setStatus('Idle');
     setAnnouncement('Token cleared and system status reset to Idle');
+    userIdInputRef.current?.focus();
   };
 
   const stateRef = useRef({
@@ -331,6 +333,7 @@ function App() {
                 </div>
                 <input
                   id="userId"
+                  ref={userIdInputRef}
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   maxLength={128}
@@ -375,7 +378,11 @@ function App() {
                       type="button"
                       onClick={() => {
                         setUserId(id);
-                        setAnnouncement(`User ID quick-filled to ${id}`);
+                        const matchedRole = id === 'student_01' ? 'viewer' : id === 'operator_99' ? 'operator' : 'admin';
+                        setRole(matchedRole);
+                        const roleDesc = ROLE_DESCRIPTIONS[matchedRole] || '';
+                        setAnnouncement(`User ID quick-filled to ${id} and synchronized role to ${matchedRole}. ${roleDesc}`);
+                        userIdInputRef.current?.focus();
                       }}
                       aria-label={`Quick fill User ID as ${id}`}
                       className="text-xs bg-slate-900 hover:bg-slate-750 text-slate-400 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700/60 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
