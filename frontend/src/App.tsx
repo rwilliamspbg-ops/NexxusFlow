@@ -27,6 +27,21 @@ const ROLE_DESCRIPTIONS: Record<string, string> = {
   viewer: 'Read-only access. Viewer claim restricted from executing state mutations or performing administrative tasks.',
 };
 
+const ROLE_BADGES: Record<string, { label: string, colorClass: string }> = {
+  admin: {
+    label: 'Tier 1 - Full Access',
+    colorClass: 'bg-rose-500/10 border-rose-500/30 text-rose-400',
+  },
+  operator: {
+    label: 'Tier 2 - Write Access',
+    colorClass: 'bg-amber-500/10 border-amber-500/30 text-amber-400',
+  },
+  viewer: {
+    label: 'Tier 3 - Read Only',
+    colorClass: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
+  },
+};
+
 function App() {
   const [token, setToken] = useState<string>('');
   const [showToken, setShowToken] = useState(false);
@@ -393,7 +408,19 @@ function App() {
                 </div>
               </div>
               <div>
-                <label htmlFor="role" className="block text-sm font-medium text-slate-400 mb-1">Role</label>
+                <div className="flex justify-between items-center mb-1.5">
+                  <label htmlFor="role" className="block text-sm font-medium text-slate-400">Role</label>
+                  <div
+                    key={role}
+                    role="status"
+                    aria-live="polite"
+                    className={`text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border transition-all duration-300 ${
+                      ROLE_BADGES[role]?.colorClass || 'bg-slate-800 border-slate-700 text-slate-400'
+                    }`}
+                  >
+                    {ROLE_BADGES[role]?.label || 'Pending'}
+                  </div>
+                </div>
                 <select
                   id="role"
                   value={role}
