@@ -45,6 +45,7 @@ const ROLE_BADGES: Record<string, { label: string, colorClass: string }> = {
 function App() {
   const [token, setToken] = useState<string>('');
   const [showToken, setShowToken] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedClaims, setCopiedClaims] = useState(false);
   const [userId, setUserId] = useState('student_01');
@@ -188,6 +189,8 @@ function App() {
     isRefreshingMetrics,
     showToken,
     setShowToken,
+    showHelp,
+    setShowHelp,
     setAnnouncement,
     handleAuth,
     handleRevoke,
@@ -204,6 +207,8 @@ function App() {
     isRefreshingMetrics,
     showToken,
     setShowToken,
+    showHelp,
+    setShowHelp,
     setAnnouncement,
     handleAuth,
     handleRevoke,
@@ -223,6 +228,8 @@ function App() {
         isRefreshingMetrics,
         showToken,
         setShowToken,
+        showHelp,
+        setShowHelp,
         setAnnouncement,
         handleAuth,
         handleRevoke,
@@ -257,6 +264,11 @@ function App() {
           const nextShow = !showToken;
           setShowToken(nextShow);
           setAnnouncement(nextShow ? "Raw JWT shown" : "Raw JWT hidden");
+        } else if (key === 'k') {
+          e.preventDefault();
+          const nextHelp = !showHelp;
+          setShowHelp(nextHelp);
+          setAnnouncement(nextHelp ? "Keyboard shortcuts menu opened" : "Keyboard shortcuts menu closed");
         }
       }
     };
@@ -289,25 +301,72 @@ function App() {
           <Shield className="w-10 h-10 text-emerald-400" aria-hidden="true" />
           <h1 className="text-3xl font-bold tracking-tight">NexxusFlow <span className="text-emerald-400">JWT Lab</span></h1>
         </div>
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
-          status === 'Issuing Token...' || status === 'Revoking...'
-            ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-            : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error')
-            ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-            : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked')
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-            : 'bg-slate-800 border-slate-700 text-slate-300'
-        }`}>
-          {status === 'Issuing Token...' || status === 'Revoking...' ? (
-            <RefreshCw className="w-4 h-4 animate-spin text-amber-400" aria-hidden="true" />
-          ) : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? (
-            <Activity className="w-4 h-4 text-rose-400 animate-bounce" style={{ animationDuration: '2s' }} aria-hidden="true" />
-          ) : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked') ? (
-            <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
-          ) : (
-            <Activity className="w-4 h-4 text-emerald-400 animate-pulse" aria-hidden="true" />
-          )}
-          <span className="text-sm font-medium" role="status" aria-live="polite">System Status: {status}</span>
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                const nextHelp = !showHelp;
+                setShowHelp(nextHelp);
+                setAnnouncement(nextHelp ? "Keyboard shortcuts menu opened" : "Keyboard shortcuts menu closed");
+              }}
+              className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-350 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+              aria-expanded={showHelp}
+              aria-haspopup="true"
+              aria-label="Toggle keyboard shortcuts help"
+            >
+              <span>Shortcuts</span>
+              <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+K</kbd>
+            </button>
+            {showHelp && (
+              <div
+                className="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 z-50 text-xs text-slate-300"
+                role="dialog"
+                aria-label="Keyboard Shortcuts"
+              >
+                <div className="font-semibold text-slate-200 mb-3 text-sm flex justify-between items-center">
+                  <span>Keyboard Shortcuts</span>
+                  <button
+                    onClick={() => { setShowHelp(false); setAnnouncement("Keyboard shortcuts menu closed"); }}
+                    className="text-slate-400 hover:text-slate-200 focus-visible:outline-none focus-visible:text-emerald-400 text-lg leading-none"
+                    aria-label="Close shortcuts help"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div className="space-y-2.5">
+                  <div className="flex justify-between items-center"><span>Issue Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+I</kbd></div>
+                  <div className="flex justify-between items-center"><span>Revoke Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+R</kbd></div>
+                  <div className="flex justify-between items-center"><span>Copy Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+C</kbd></div>
+                  <div className="flex justify-between items-center"><span>Clear Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+X</kbd></div>
+                  <div className="flex justify-between items-center"><span>Copy Decoded Claims</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+P</kbd></div>
+                  <div className="flex justify-between items-center"><span>Toggle JWT Visibility</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+V</kbd></div>
+                  <div className="flex justify-between items-center"><span>Refresh Metrics</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+M</kbd></div>
+                  <div className="flex justify-between items-center text-slate-400"><span>Toggle This Help</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+K</kbd></div>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
+            status === 'Issuing Token...' || status === 'Revoking...'
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+              : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error')
+              ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+              : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked')
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+              : 'bg-slate-800 border-slate-700 text-slate-300'
+          }`}>
+            {status === 'Issuing Token...' || status === 'Revoking...' ? (
+              <RefreshCw className="w-4 h-4 animate-spin text-amber-400" aria-hidden="true" />
+            ) : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? (
+              <Activity className="w-4 h-4 text-rose-400 animate-bounce" style={{ animationDuration: '2s' }} aria-hidden="true" />
+            ) : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked') ? (
+              <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+            ) : (
+              <Activity className="w-4 h-4 text-emerald-400 animate-pulse" aria-hidden="true" />
+            )}
+            <span className="text-sm font-medium" role="status" aria-live="polite">System Status: {status}</span>
+          </div>
         </div>
       </header>
 
