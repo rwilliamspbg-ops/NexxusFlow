@@ -59,6 +59,7 @@ function App() {
   const [isRefreshingMetrics, setIsRefreshingMetrics] = useState(false);
   const timeoutRef = useRef<any>(null);
   const userIdInputRef = useRef<HTMLInputElement | null>(null);
+  const helpDialogRef = useRef<HTMLDivElement | null>(null);
 
   const trimmedUserId = userId.trim();
   const isUserEmpty = trimmedUserId === '';
@@ -98,6 +99,25 @@ function App() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        showHelp &&
+        helpDialogRef.current &&
+        !helpDialogRef.current.contains(event.target as Node)
+      ) {
+        const target = event.target as HTMLElement;
+        if (!target.closest('[aria-label="Toggle keyboard shortcuts help"]')) {
+          setShowHelp(false);
+          setAnnouncement("Keyboard shortcuts menu closed");
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showHelp]);
 
   const handleAuth = async () => {
     setStatus('Issuing Token...');
@@ -239,6 +259,12 @@ function App() {
         fetchMetrics,
         isUserEmpty,
       } = stateRef.current;
+      if (e.key === 'Escape' && showHelp) {
+        e.preventDefault();
+        setShowHelp(false);
+        setAnnouncement("Keyboard shortcuts menu closed");
+        return;
+      }
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const key = e.key.toLowerCase();
         if (key === 'i' && !isIssuing && !isRevoking && !isUserEmpty) {
@@ -320,6 +346,7 @@ function App() {
             </button>
             {showHelp && (
               <div
+                ref={helpDialogRef}
                 className="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 z-50 text-xs text-slate-300"
                 role="dialog"
                 aria-label="Keyboard Shortcuts"
