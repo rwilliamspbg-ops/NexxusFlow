@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff } from 'lucide-react';
+import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -432,24 +432,40 @@ function App() {
                     {userId.length}/128
                   </span>
                 </div>
-                <input
-                  id="userId"
-                  ref={userIdInputRef}
-                  value={userId}
-                  onChange={(e) => setUserId(e.target.value)}
-                  maxLength={128}
-                  required
-                  aria-required="true"
-                  placeholder="e.g., student_01"
-                  aria-describedby="userId-helper userId-validation"
-                  className={`w-full bg-slate-900 border rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:outline-none outline-none transition-all duration-150 ${
-                    isUserEmpty
-                      ? 'border-rose-500 focus-visible:ring-rose-500'
-                      : hasSpaces
-                      ? 'border-amber-500 focus-visible:ring-amber-500'
-                      : 'border-slate-700 focus-visible:ring-emerald-500'
-                  }`}
-                />
+                <div className="relative w-full">
+                  <input
+                    id="userId"
+                    ref={userIdInputRef}
+                    value={userId}
+                    onChange={(e) => setUserId(e.target.value)}
+                    maxLength={128}
+                    required
+                    aria-required="true"
+                    placeholder="e.g., student_01"
+                    aria-describedby="userId-helper userId-validation"
+                    className={`w-full bg-slate-900 border rounded-lg pl-4 pr-10 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:outline-none outline-none transition-all duration-150 ${
+                      isUserEmpty
+                        ? 'border-rose-500 focus-visible:ring-rose-500'
+                        : hasSpaces
+                        ? 'border-amber-500 focus-visible:ring-amber-500'
+                        : 'border-slate-700 focus-visible:ring-emerald-500'
+                    }`}
+                  />
+                  {userId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUserId('');
+                        setAnnouncement('User ID cleared');
+                        userIdInputRef.current?.focus();
+                      }}
+                      aria-label="Clear User ID"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5"
+                    >
+                      <X className="w-4 h-4" aria-hidden="true" />
+                    </button>
+                  )}
+                </div>
                 <p id="userId-helper" className="text-xs text-slate-500 mt-1">
                   The subject claim (sub) that uniquely identifies this user in the issued token.
                 </p>
