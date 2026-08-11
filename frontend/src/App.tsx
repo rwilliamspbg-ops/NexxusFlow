@@ -336,7 +336,7 @@ function App() {
                 setShowHelp(nextHelp);
                 setAnnouncement(nextHelp ? "Keyboard shortcuts menu opened" : "Keyboard shortcuts menu closed");
               }}
-              className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-350 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-350 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
               aria-expanded={showHelp}
               aria-haspopup="true"
               aria-label="Toggle keyboard shortcuts help"
@@ -502,7 +502,7 @@ function App() {
                         userIdInputRef.current?.focus();
                       }}
                       aria-label={`Quick fill User ID as ${id}`}
-                      className="text-xs bg-slate-900 hover:bg-slate-750 text-slate-400 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700/60 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      className="text-xs bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700/60 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                     >
                       {id}
                     </button>
@@ -588,7 +588,7 @@ function App() {
                       aria-controls="raw-token-container"
                       aria-keyshortcuts="Alt+V"
                       title={showToken ? "Hide raw JWT (Alt + V)" : "Show raw JWT (Alt + V)"}
-                      className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                       aria-label={showToken ? "Hide raw JWT (Alt + V)" : "Show raw JWT (Alt + V)"}
                     >
                       {showToken ? (
@@ -609,7 +609,7 @@ function App() {
                       type="button"
                       onClick={handleCopy}
                       aria-keyshortcuts="Alt+C"
-                      className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                       aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard (Alt + C)"}
                       title="Copy token to clipboard (Alt + C)"
                     >
@@ -630,7 +630,7 @@ function App() {
                       type="button"
                       onClick={handleClear}
                       aria-keyshortcuts="Alt+X"
-                      className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-rose-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-rose-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
                       aria-label="Clear active token (Alt + X)"
                       title="Clear active token (Alt + X)"
                     >
@@ -681,7 +681,7 @@ function App() {
                     type="button"
                     onClick={handleCopyClaims}
                     aria-keyshortcuts="Alt+P"
-                    className="text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                     aria-label={copiedClaims ? "Claims copied to clipboard" : "Copy decoded payload claims to clipboard (Alt + P)"}
                     title="Copy decoded payload claims (Alt + P)"
                   >
@@ -781,7 +781,7 @@ function App() {
                   href="http://localhost:3000"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-2 text-xs bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                  className="mt-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                   aria-label="Launch live Grafana dashboard in a new tab"
                 >
                   <span>Launch Live Dashboard</span>
