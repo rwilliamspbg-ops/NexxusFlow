@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X } from 'lucide-react';
+import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -64,6 +64,12 @@ function App() {
   const trimmedUserId = userId.trim();
   const isUserEmpty = trimmedUserId === '';
   const hasSpaces = userId !== trimmedUserId;
+  const progressPercent = Math.min((userId.length / 128) * 100, 100);
+  const barColor = userId.length === 128
+    ? 'bg-rose-500 animate-pulse'
+    : userId.length >= 110
+    ? 'bg-amber-500'
+    : 'bg-emerald-500';
 
   const fetchMetrics = async (isManual = false) => {
     if (isManual) {
@@ -466,7 +472,14 @@ function App() {
                     </button>
                   )}
                 </div>
-                <p id="userId-helper" className="text-xs text-slate-500 mt-1">
+                {/* Visual character-count progress bar */}
+                <div className="w-full bg-slate-950 h-1 rounded-full mt-1.5 overflow-hidden border border-slate-800/80" aria-hidden="true">
+                  <div
+                    className={`h-full transition-all duration-300 ${barColor}`}
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+                <p id="userId-helper" className="text-xs text-slate-500 mt-1.5">
                   The subject claim (sub) that uniquely identifies this user in the issued token.
                 </p>
                 <div id="userId-validation" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium" aria-live="polite">
@@ -761,10 +774,30 @@ function App() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <MetricCard title="Auth Success" value={metrics?.auth_success_total || 0} color="text-emerald-400" />
-            <MetricCard title="Auth Failures" value={metrics?.auth_failure_total || 0} color="text-rose-400" />
-            <MetricCard title="Rate Limited" value={metrics?.rate_limit_rejections_total || 0} color="text-amber-400" />
-            <MetricCard title="Mutations" value={metrics?.narrative_mutations_total || 0} color="text-blue-400" />
+            <MetricCard
+              title="Auth Success"
+              value={metrics?.auth_success_total || 0}
+              color="text-emerald-400"
+              description="Total number of successful JWT authentications validated by the API."
+            />
+            <MetricCard
+              title="Auth Failures"
+              value={metrics?.auth_failure_total || 0}
+              color="text-rose-400"
+              description="Total number of failed, invalid, or expired token verification attempts."
+            />
+            <MetricCard
+              title="Rate Limited"
+              value={metrics?.rate_limit_rejections_total || 0}
+              color="text-amber-400"
+              description="Total number of requests blocked by the token bucket rate limiter."
+            />
+            <MetricCard
+              title="Mutations"
+              value={metrics?.narrative_mutations_total || 0}
+              color="text-blue-400"
+              description="Total number of successful state updates (mutations) processed by the lab."
+            />
           </div>
 
           <div className="mt-8">
@@ -795,7 +828,7 @@ function App() {
   );
 }
 
-function MetricCard({ title, value, color }: { title: string, value: number | string, color: string }) {
+function MetricCard({ title, value, color, description }: { title: string, value: number | string, color: string, description?: string }) {
   const [highlight, setHighlight] = useState(false);
   const prevValue = useRef(value);
 
@@ -824,7 +857,20 @@ function MetricCard({ title, value, color }: { title: string, value: number | st
       }`}
       aria-live="polite"
     >
-      <div className="text-xs font-medium text-slate-500 uppercase mb-1">{title}</div>
+      <div className="flex items-center justify-between text-xs font-medium text-slate-500 uppercase mb-1">
+        <span>{title}</span>
+        {description && (
+          <span
+            className="cursor-help text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400 outline-none transition-colors flex items-center"
+            title={description}
+            aria-label={description}
+            tabIndex={0}
+            role="tooltip"
+          >
+            <Info className="w-3.5 h-3.5" aria-hidden="true" />
+          </span>
+        )}
+      </div>
       <div className={`text-2xl font-bold transition-transform duration-300 ${color} ${highlight ? 'scale-105 origin-left' : ''}`}>
         {value}
       </div>
