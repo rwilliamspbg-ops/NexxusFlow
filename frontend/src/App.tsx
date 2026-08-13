@@ -671,17 +671,35 @@ function App() {
                     aria-label="JWT segment color guide"
                     role="list"
                   >
-                    <div className="flex items-center gap-1.5" role="listitem">
+                    <div
+                      className="flex items-center gap-1.5 cursor-help hover:text-rose-400 focus-visible:text-rose-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-rose-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
+                      role="listitem"
+                      tabIndex={0}
+                      title="Header: Contains metadata about the token type (JWT) and signing algorithm used (e.g., HS256)."
+                      aria-label="Header segment color guide. Rose color. Contains metadata about the token type (JWT) and signing algorithm used (e.g., HS256)."
+                    >
                       <span className="w-2 h-2 rounded-full bg-rose-400 block shrink-0" aria-hidden="true" />
-                      <span>Rose: Header</span>
+                      <span className="font-medium">Rose: Header</span>
                     </div>
-                    <div className="flex items-center gap-1.5" role="listitem">
+                    <div
+                      className="flex items-center gap-1.5 cursor-help hover:text-indigo-400 focus-visible:text-indigo-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-indigo-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
+                      role="listitem"
+                      tabIndex={0}
+                      title="Payload: Contains the core claims and user data, such as subject (sub) and roles, encoded as JSON."
+                      aria-label="Payload segment color guide. Indigo color. Contains the core claims and user data, such as subject (sub) and roles, encoded as JSON."
+                    >
                       <span className="w-2 h-2 rounded-full bg-indigo-400 block shrink-0" aria-hidden="true" />
-                      <span>Indigo: Payload</span>
+                      <span className="font-medium">Indigo: Payload</span>
                     </div>
-                    <div className="flex items-center gap-1.5" role="listitem">
+                    <div
+                      className="flex items-center gap-1.5 cursor-help hover:text-cyan-400 focus-visible:text-cyan-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
+                      role="listitem"
+                      tabIndex={0}
+                      title="Signature: Cryptographically ensures that the token has not been altered or tampered with."
+                      aria-label="Signature segment color guide. Cyan color. Cryptographically ensures that the token has not been altered or tampered with."
+                    >
                       <span className="w-2 h-2 rounded-full bg-cyan-400 block shrink-0" aria-hidden="true" />
-                      <span>Cyan: Signature</span>
+                      <span className="font-medium">Cyan: Signature</span>
                     </div>
                   </div>
                 )}
