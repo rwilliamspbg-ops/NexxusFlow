@@ -60,6 +60,8 @@ function App() {
   const timeoutRef = useRef<any>(null);
   const userIdInputRef = useRef<HTMLInputElement | null>(null);
   const helpDialogRef = useRef<HTMLDivElement | null>(null);
+  const helpTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const helpCloseButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const trimmedUserId = userId.trim();
   const isUserEmpty = trimmedUserId === '';
@@ -107,6 +109,12 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (showHelp) {
+      helpCloseButtonRef.current?.focus();
+    }
+  }, [showHelp]);
+
+  useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       if (
         showHelp &&
@@ -117,6 +125,7 @@ function App() {
         if (!target.closest('[aria-label="Toggle keyboard shortcuts help"]')) {
           setShowHelp(false);
           setAnnouncement("Keyboard shortcuts menu closed");
+          helpTriggerRef.current?.focus();
         }
       }
     };
@@ -269,6 +278,7 @@ function App() {
         e.preventDefault();
         setShowHelp(false);
         setAnnouncement("Keyboard shortcuts menu closed");
+        helpTriggerRef.current?.focus();
         return;
       }
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
@@ -336,13 +346,14 @@ function App() {
         <div className="flex items-center gap-4">
           <div className="relative">
             <button
+              ref={helpTriggerRef}
               type="button"
               onClick={() => {
                 const nextHelp = !showHelp;
                 setShowHelp(nextHelp);
                 setAnnouncement(nextHelp ? "Keyboard shortcuts menu opened" : "Keyboard shortcuts menu closed");
               }}
-              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-350 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
               aria-expanded={showHelp}
               aria-haspopup="true"
               aria-label="Toggle keyboard shortcuts help"
@@ -355,13 +366,19 @@ function App() {
                 ref={helpDialogRef}
                 className="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 z-50 text-xs text-slate-300"
                 role="dialog"
+                aria-modal="true"
                 aria-label="Keyboard Shortcuts"
               >
                 <div className="font-semibold text-slate-200 mb-3 text-sm flex justify-between items-center">
                   <span>Keyboard Shortcuts</span>
                   <button
-                    onClick={() => { setShowHelp(false); setAnnouncement("Keyboard shortcuts menu closed"); }}
-                    className="text-slate-400 hover:text-slate-200 focus-visible:outline-none focus-visible:text-emerald-400 text-lg leading-none"
+                    ref={helpCloseButtonRef}
+                    onClick={() => {
+                      setShowHelp(false);
+                      setAnnouncement("Keyboard shortcuts menu closed");
+                      helpTriggerRef.current?.focus();
+                    }}
+                    className="text-slate-400 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:text-emerald-400 text-lg leading-none p-1 rounded"
                     aria-label="Close shortcuts help"
                   >
                     &times;
