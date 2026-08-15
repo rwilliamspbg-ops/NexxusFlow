@@ -1,3 +1,7 @@
+## 2026-08-15 - [Interactive Empty State Actions in Auth Dashboards]
+**Learning:** Passive, text-only empty states in interactive cryptographic/auth dashboards leave users wondering how to initiate testing or generate demo resources. Replacing generic static text with a structured empty state container—featuring a visual icon accent, descriptive guidance, and a direct "Quick Issue Demo Token" action button—dramatically lowers interaction friction while keeping disabled states and keyboard focus rings fully accessible.
+**Action:** Always complement empty dashboard state panels with clear visual icons, descriptive guidance, and direct action triggers equipped with proper focus-visible ring styles and disabled state handlers.
+
 ## 2026-08-14 - [Modal Focus Management and Dynamic Trigger Focus Restoration]
 **Learning:** In interactive single-page dashboards featuring helper popups or modal dialogs (such as shortcut guides), opening the overlay without moving keyboard focus forces keyboard navigators to manually tab into the container. Automatically focusing the internal modal close control upon mount, marking the overlay with `aria-modal="true"`, and restoring focus back to the trigger button upon dismissal (via Escape key, close button click, or outside click) ensures seamless keyboard trap navigation and screen-reader context retention.
 **Action:** Always auto-focus internal controls on modal open, mark dialog overlays with `aria-modal="true"`, and programmatically restore focus to trigger elements upon dismissal.

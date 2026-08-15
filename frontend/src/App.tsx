@@ -761,11 +761,26 @@ function App() {
               </div>
             </div>
           ) : (
-            <div className="mt-6 p-6 rounded-xl border border-dashed border-slate-700 bg-slate-900/30 text-center">
-              <p className="text-sm text-slate-400">
-                No active JWT. Fill in the credentials above and click{" "}
-                <strong className="text-emerald-400 font-semibold">Issue Token</strong> to generate one.
-              </p>
+            <div className="mt-6 p-6 rounded-xl border border-dashed border-slate-700 bg-slate-900/30 text-center flex flex-col items-center gap-3">
+              <div className="p-3 bg-slate-800/80 rounded-full border border-slate-700/80 text-emerald-400">
+                <Key className="w-6 h-6" aria-hidden="true" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-300">No Active JSON Web Token</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm">
+                  Configure a User ID and Role above, or click below to quickly issue a demo authentication token.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAuth}
+                disabled={isIssuing || isRevoking || isUserEmpty}
+                aria-label="Quickly issue demo JWT token"
+                className="mt-1 text-xs bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 text-emerald-400 hover:text-emerald-300 disabled:text-slate-600 px-3.5 py-1.5 rounded-lg border border-slate-700/80 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+              >
+                <Key className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Quick Issue Demo Token</span>
+              </button>
             </div>
           )}
         </section>
@@ -896,7 +911,7 @@ function MetricCard({ title, value, color, description }: { title: string, value
         <span>{title}</span>
         {description && (
           <span
-            className="cursor-help text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400 outline-none transition-colors flex items-center"
+            className="cursor-help text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400 transition-colors flex items-center focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none"
             title={description}
             aria-label={description}
             tabIndex={0}
