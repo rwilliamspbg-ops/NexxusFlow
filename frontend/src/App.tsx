@@ -519,24 +519,32 @@ function App() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <span className="text-xs text-slate-500 font-medium">Quick fill:</span>
-                  {['student_01', 'operator_99', 'admin_root'].map((id) => (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => {
-                        setUserId(id);
-                        const matchedRole = id === 'student_01' ? 'viewer' : id === 'operator_99' ? 'operator' : 'admin';
-                        setRole(matchedRole);
-                        const roleDesc = ROLE_DESCRIPTIONS[matchedRole] || '';
-                        setAnnouncement(`User ID quick-filled to ${id} and synchronized role to ${matchedRole}. ${roleDesc}`);
-                        userIdInputRef.current?.focus();
-                      }}
-                      aria-label={`Quick fill User ID as ${id}`}
-                      className="text-xs bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 px-2 py-0.5 rounded border border-slate-700/60 transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                    >
-                      {id}
-                    </button>
-                  ))}
+                  {['student_01', 'operator_99', 'admin_root'].map((id) => {
+                    const isActive = userId === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        aria-pressed={isActive}
+                        onClick={() => {
+                          setUserId(id);
+                          const matchedRole = id === 'student_01' ? 'viewer' : id === 'operator_99' ? 'operator' : 'admin';
+                          setRole(matchedRole);
+                          const roleDesc = ROLE_DESCRIPTIONS[matchedRole] || '';
+                          setAnnouncement(`User ID quick-filled to ${id} and synchronized role to ${matchedRole}. ${roleDesc}`);
+                          userIdInputRef.current?.focus();
+                        }}
+                        aria-label={`Quick fill User ID as ${id}`}
+                        className={`text-xs px-2 py-0.5 rounded border transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                          isActive
+                            ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-medium'
+                            : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 border-slate-700/60'
+                        }`}
+                      >
+                        {id}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div>
