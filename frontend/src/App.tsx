@@ -483,6 +483,7 @@ function App() {
                         userIdInputRef.current?.focus();
                       }}
                       aria-label="Clear User ID"
+                      title="Clear User ID"
                       className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5"
                     >
                       <X className="w-4 h-4" aria-hidden="true" />
@@ -783,11 +784,16 @@ function App() {
                 type="button"
                 onClick={handleAuth}
                 disabled={isIssuing || isRevoking || isUserEmpty}
-                aria-label="Quickly issue demo JWT token"
+                title={isUserEmpty ? "Cannot issue token: User ID is empty" : isIssuing || isRevoking ? "Action in progress" : "Quickly issue demo JWT token"}
+                aria-label={isIssuing ? "Issuing demo JWT token..." : "Quickly issue demo JWT token"}
                 className="mt-1 text-xs bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 text-emerald-400 hover:text-emerald-300 disabled:text-slate-600 px-3.5 py-1.5 rounded-lg border border-slate-700/80 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
-                <Key className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Quick Issue Demo Token</span>
+                {isIssuing ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Key className="w-3.5 h-3.5" aria-hidden="true" />
+                )}
+                <span>{isIssuing ? 'Issuing...' : 'Quick Issue Demo Token'}</span>
               </button>
             </div>
           )}
