@@ -63,6 +63,7 @@ function App() {
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null);
   const helpCloseButtonRef = useRef<HTMLButtonElement | null>(null);
 
+  const isRevoked = status.toLowerCase().includes('revoked');
   const trimmedUserId = userId.trim();
   const isUserEmpty = trimmedUserId === '';
   const hasSpaces = userId !== trimmedUserId;
@@ -615,7 +616,20 @@ function App() {
             <div className="mt-6 space-y-4">
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <label className="block text-sm font-medium text-slate-400">Active JWT</label>
+                  <div className="flex items-center gap-2">
+                    <label className="block text-sm font-medium text-slate-400">
+                      {isRevoked ? 'Revoked JWT' : 'Active JWT'}
+                    </label>
+                    {isRevoked && (
+                      <span
+                        role="status"
+                        aria-live="polite"
+                        className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400"
+                      >
+                        Revoked
+                      </span>
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -682,10 +696,12 @@ function App() {
                 <div
                   id="raw-token-container"
                   tabIndex={0}
-                  aria-label="Active JSON Web Token container"
+                  aria-label={isRevoked ? "Revoked JSON Web Token container" : "Active JSON Web Token container"}
                   className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                     copied
                       ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
+                      : isRevoked
+                      ? 'border-rose-500/40 bg-rose-500/5 text-rose-300'
                       : 'border-slate-800 text-emerald-300'
                   }`}
                 >

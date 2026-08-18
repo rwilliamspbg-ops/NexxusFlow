@@ -1,3 +1,7 @@
+## 2026-08-16 - [Revoked Credential Visual Hierarchy and Status Badge Indicators]
+**Learning:** In authentication and authorization dashboards where credentials can be revoked (such as blacklist testing labs), failing to visually distinguish a revoked token container from an active one creates ambiguity for users. Updating the container label (e.g. "Active JWT" to "Revoked JWT"), appending a high-visibility status badge (`role="status"`, `aria-live="polite"`), updating the container `aria-label`, and shifting the border/text theme to distinct rose red tones provides instant clarity across both visual and assistive technology channels.
+**Action:** Always complement credential revocation events with distinct visual container status badges, rose-tinted border/text theme transitions, and screen-reader polite status announcements.
+
 ## 2026-08-15 - [Interactive Empty State Actions in Auth Dashboards]
 **Learning:** Passive, text-only empty states in interactive cryptographic/auth dashboards leave users wondering how to initiate testing or generate demo resources. Replacing generic static text with a structured empty state container—featuring a visual icon accent, descriptive guidance, and a direct "Quick Issue Demo Token" action button—dramatically lowers interaction friction while keeping disabled states and keyboard focus rings fully accessible.
 **Action:** Always complement empty dashboard state panels with clear visual icons, descriptive guidance, and direct action triggers equipped with proper focus-visible ring styles and disabled state handlers.
