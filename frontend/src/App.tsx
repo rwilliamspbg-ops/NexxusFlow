@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info } from 'lucide-react';
+import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -40,6 +40,26 @@ const ROLE_BADGES: Record<string, { label: string, colorClass: string }> = {
     label: 'Tier 3 - Read Only',
     colorClass: 'bg-blue-500/10 border-blue-500/30 text-blue-400',
   },
+};
+
+const getTokenExpirationInfo = (jwt: string): { label: string; isExpired: boolean } | null => {
+  const payload = decodePayload(jwt);
+  if (!payload || typeof payload.exp !== 'number') return null;
+  const now = Math.floor(Date.now() / 1000);
+  const diffSec = payload.exp - now;
+  if (diffSec <= 0) {
+    return { label: 'Token Expired', isExpired: true };
+  }
+  const mins = Math.floor(diffSec / 60);
+  if (mins < 1) {
+    return { label: 'Expires in < 1m', isExpired: false };
+  }
+  if (mins < 60) {
+    return { label: `Expires in ${mins}m`, isExpired: false };
+  }
+  const hours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  return { label: remMins > 0 ? `Expires in ${hours}h ${remMins}m` : `Expires in ${hours}h`, isExpired: false };
 };
 
 function App() {
@@ -523,6 +543,8 @@ function App() {
                   <span className="text-xs text-slate-500 font-medium">Quick fill:</span>
                   {['student_01', 'operator_99', 'admin_root'].map((id) => {
                     const isActive = userId === id;
+                    const matchedRole = id === 'student_01' ? 'viewer' : id === 'operator_99' ? 'operator' : 'admin';
+                    const roleLabel = matchedRole === 'viewer' ? 'Viewer' : matchedRole === 'operator' ? 'Operator' : 'Admin';
                     return (
                       <button
                         key={id}
@@ -530,13 +552,13 @@ function App() {
                         aria-pressed={isActive}
                         onClick={() => {
                           setUserId(id);
-                          const matchedRole = id === 'student_01' ? 'viewer' : id === 'operator_99' ? 'operator' : 'admin';
                           setRole(matchedRole);
                           const roleDesc = ROLE_DESCRIPTIONS[matchedRole] || '';
                           setAnnouncement(`User ID quick-filled to ${id} and synchronized role to ${matchedRole}. ${roleDesc}`);
                           userIdInputRef.current?.focus();
                         }}
                         aria-label={`Quick fill User ID as ${id}`}
+                        title={`Quick fill ${id} (${roleLabel} role)`}
                         className={`text-xs px-2 py-0.5 rounded border transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                           isActive
                             ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-medium'
@@ -749,7 +771,28 @@ function App() {
 
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <span className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</span>
+                    {(() => {
+                      const expInfo = getTokenExpirationInfo(token);
+                      if (!expInfo) return null;
+                      return (
+                        <span
+                          role="status"
+                          aria-live="polite"
+                          title={expInfo.isExpired ? "This JWT token has expired" : `Remaining token validity: ${expInfo.label}`}
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                            expInfo.isExpired
+                              ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                          }`}
+                        >
+                          <Clock className="w-3 h-3" aria-hidden="true" />
+                          <span>{expInfo.label}</span>
+                        </span>
+                      );
+                    })()}
+                  </div>
                   <button
                     type="button"
                     onClick={handleCopyClaims}
