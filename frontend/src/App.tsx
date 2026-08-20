@@ -405,15 +405,15 @@ function App() {
                     &times;
                   </button>
                 </div>
-                <div className="space-y-2.5">
-                  <div className="flex justify-between items-center"><span>Issue Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+I</kbd></div>
-                  <div className="flex justify-between items-center"><span>Revoke Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+R</kbd></div>
-                  <div className="flex justify-between items-center"><span>Copy Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+C</kbd></div>
-                  <div className="flex justify-between items-center"><span>Clear Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+X</kbd></div>
-                  <div className="flex justify-between items-center"><span>Copy Decoded Claims</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+P</kbd></div>
-                  <div className="flex justify-between items-center"><span>Toggle JWT Visibility</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+V</kbd></div>
-                  <div className="flex justify-between items-center"><span>Refresh Metrics</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+M</kbd></div>
-                  <div className="flex justify-between items-center text-slate-400"><span>Toggle This Help</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+K</kbd></div>
+                <div className="space-y-2.5" role="list" aria-label="Keyboard shortcuts list">
+                  <div className="flex justify-between items-center" role="listitem"><span>Issue Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+I</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Revoke Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+R</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Copy Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+C</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Clear Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+X</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Copy Decoded Claims</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+P</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Toggle JWT Visibility</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+V</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Refresh Metrics</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+M</kbd></div>
+                  <div className="flex justify-between items-center text-slate-400" role="listitem"><span>Toggle This Help</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+K</kbd></div>
                 </div>
               </div>
             )}
@@ -597,9 +597,9 @@ function App() {
                   aria-describedby="role-helper"
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none outline-none transition-all duration-150"
                 >
-                  <option value="admin">Admin</option>
-                  <option value="operator">Operator</option>
-                  <option value="viewer">Viewer</option>
+                  <option value="admin">Admin (Tier 1 - Full Access)</option>
+                  <option value="operator">Operator (Tier 2 - Write Access)</option>
+                  <option value="viewer">Viewer (Tier 3 - Read Only)</option>
                 </select>
                 <p id="role-helper" className="text-xs text-slate-500 mt-1 transition-all duration-300">
                   {ROLE_DESCRIPTIONS[role] || 'Assigned permissions role added to the JWT payload claims for role-based access control.'}
@@ -853,6 +853,7 @@ function App() {
                   <Key className="w-3.5 h-3.5" aria-hidden="true" />
                 )}
                 <span>{isIssuing ? 'Issuing...' : 'Quick Issue Demo Token'}</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-300 bg-slate-900/40 border border-slate-500/30 rounded" aria-hidden="true">Alt+I</kbd>
               </button>
             </div>
           )}
