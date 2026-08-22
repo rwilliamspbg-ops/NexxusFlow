@@ -418,15 +418,18 @@ function App() {
               </div>
             )}
           </div>
-          <div className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
-            status === 'Issuing Token...' || status === 'Revoking...'
-              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-              : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error')
-              ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-              : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked')
-              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-              : 'bg-slate-800 border-slate-700 text-slate-300'
-          }`}>
+          <div
+            title={`Current System Status: ${status}`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
+              status === 'Issuing Token...' || status === 'Revoking...'
+                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
+                : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error')
+                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked')
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                : 'bg-slate-800 border-slate-700 text-slate-300'
+            }`}
+          >
             {status === 'Issuing Token...' || status === 'Revoking...' ? (
               <RefreshCw className="w-4 h-4 animate-spin text-amber-400" aria-hidden="true" />
             ) : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? (
@@ -539,7 +542,7 @@ function App() {
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap items-center gap-2 mt-2">
+                <div className="flex flex-wrap items-center gap-2 mt-2" role="group" aria-label="User ID quick fill shortcuts">
                   <span className="text-xs text-slate-500 font-medium">Quick fill:</span>
                   {['student_01', 'operator_99', 'admin_root'].map((id) => {
                     const isActive = userId === id;
@@ -781,7 +784,7 @@ function App() {
                           role="status"
                           aria-live="polite"
                           title={expInfo.isExpired ? "This JWT token has expired" : `Remaining token validity: ${expInfo.label}`}
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
                             expInfo.isExpired
                               ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
                               : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
@@ -868,7 +871,8 @@ function App() {
               <span
                 role="status"
                 aria-live="polite"
-                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border ${
+                title={isOffline ? "Backend API service is unreachable" : "Backend API service is connected (polling metrics every 2s)"}
+                className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border transition-all ${
                   isOffline
                     ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
                     : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
