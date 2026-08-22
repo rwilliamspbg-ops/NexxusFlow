@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock } from 'lucide-react';
+import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock, AlertCircle, AlertTriangle } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -527,12 +527,12 @@ function App() {
                 <div id="userId-validation" className="mt-1.5 flex items-center gap-1.5 text-xs font-medium" aria-live="polite">
                   {isUserEmpty ? (
                     <span className="text-rose-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" aria-hidden="true" />
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                       User ID cannot be empty or only spaces.
                     </span>
                   ) : hasSpaces ? (
                     <span className="text-amber-400 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" aria-hidden="true" />
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
                       Leading/trailing spaces will be trimmed by the server.
                     </span>
                   ) : (
@@ -560,7 +560,7 @@ function App() {
                           setAnnouncement(`User ID quick-filled to ${id} and synchronized role to ${matchedRole}. ${roleDesc}`);
                           userIdInputRef.current?.focus();
                         }}
-                        aria-label={`Quick fill User ID as ${id}`}
+                        aria-label={`Quick fill User ID as ${id} with ${roleLabel} role`}
                         title={`Quick fill ${id} (${roleLabel} role)`}
                         className={`text-xs px-2 py-0.5 rounded border transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                           isActive
@@ -568,7 +568,7 @@ function App() {
                             : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 border-slate-700/60'
                         }`}
                       >
-                        {id}
+                        {id} <span className="text-[10px] opacity-75 font-normal">({roleLabel})</span>
                       </button>
                     );
                   })}
