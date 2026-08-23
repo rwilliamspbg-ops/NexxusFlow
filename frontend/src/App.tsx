@@ -423,9 +423,9 @@ function App() {
             className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300 ${
               status === 'Issuing Token...' || status === 'Revoking...'
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error')
+                : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') || status.toLowerCase().includes('revoked')
                 ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked')
+                : status === 'Token Issued'
                 ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                 : 'bg-slate-800 border-slate-700 text-slate-300'
             }`}
@@ -434,7 +434,9 @@ function App() {
               <RefreshCw className="w-4 h-4 animate-spin text-amber-400" aria-hidden="true" />
             ) : status.toLowerCase().includes('failed') || status.toLowerCase().includes('error') ? (
               <Activity className="w-4 h-4 text-rose-400 animate-bounce" style={{ animationDuration: '2s' }} aria-hidden="true" />
-            ) : status === 'Token Issued' || status === 'token revoked' || status.toLowerCase().includes('revoked') ? (
+            ) : status.toLowerCase().includes('revoked') ? (
+              <Trash2 className="w-4 h-4 text-rose-400" aria-hidden="true" />
+            ) : status === 'Token Issued' ? (
               <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
             ) : (
               <Activity className="w-4 h-4 text-emerald-400 animate-pulse" aria-hidden="true" />
@@ -545,8 +547,8 @@ function App() {
                 <div className="flex flex-wrap items-center gap-2 mt-2" role="group" aria-label="User ID quick fill shortcuts">
                   <span className="text-xs text-slate-500 font-medium">Quick fill:</span>
                   {['student_01', 'operator_99', 'admin_root'].map((id) => {
-                    const isActive = userId === id;
                     const matchedRole = id === 'student_01' ? 'viewer' : id === 'operator_99' ? 'operator' : 'admin';
+                    const isActive = userId === id && role === matchedRole;
                     const roleLabel = matchedRole === 'viewer' ? 'Viewer' : matchedRole === 'operator' ? 'Operator' : 'Admin';
                     return (
                       <button
