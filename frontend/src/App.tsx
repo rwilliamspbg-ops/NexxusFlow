@@ -781,19 +781,20 @@ function App() {
                     {(() => {
                       const expInfo = getTokenExpirationInfo(token);
                       if (!expInfo) return null;
+                      const isBadgeExpiredOrRevoked = expInfo.isExpired || isRevoked;
                       return (
                         <span
                           role="status"
                           aria-live="polite"
-                          title={expInfo.isExpired ? "This JWT token has expired" : `Remaining token validity: ${expInfo.label}`}
+                          title={isRevoked ? `This JWT token has been revoked (${expInfo.label})` : expInfo.isExpired ? "This JWT token has expired" : `Remaining token validity: ${expInfo.label}`}
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
-                            expInfo.isExpired
+                            isBadgeExpiredOrRevoked
                               ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
                               : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                           }`}
                         >
                           <Clock className="w-3 h-3" aria-hidden="true" />
-                          <span>{expInfo.label}</span>
+                          <span>{isRevoked ? `${expInfo.label} (Revoked)` : expInfo.label}</span>
                         </span>
                       );
                     })()}
