@@ -304,29 +304,58 @@ function App() {
       }
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const key = e.key.toLowerCase();
-        if (key === 'i' && !isIssuing && !isRevoking && !isUserEmpty) {
+        if (key === 'i') {
           e.preventDefault();
-          handleAuth();
-        } else if (key === 'r' && token && !isIssuing && !isRevoking) {
+          if (isIssuing || isRevoking) {
+            setAnnouncement("Cannot issue token while an action is in progress");
+          } else if (isUserEmpty) {
+            setAnnouncement("Cannot issue token: User ID is empty");
+            userIdInputRef.current?.focus();
+          } else {
+            handleAuth();
+          }
+        } else if (key === 'r') {
           e.preventDefault();
-          handleRevoke();
-        } else if (key === 'c' && token) {
+          if (isIssuing || isRevoking) {
+            setAnnouncement("Cannot revoke token while an action is in progress");
+          } else if (!token) {
+            setAnnouncement("Cannot revoke token: No active token available");
+          } else {
+            handleRevoke();
+          }
+        } else if (key === 'c') {
           e.preventDefault();
-          handleCopy();
-        } else if (key === 'x' && token) {
+          if (!token) {
+            setAnnouncement("Cannot copy token: No active token available");
+          } else {
+            handleCopy();
+          }
+        } else if (key === 'x') {
           e.preventDefault();
-          handleClear();
-        } else if (key === 'p' && token) {
+          if (!token) {
+            setAnnouncement("Cannot clear token: No active token available");
+          } else {
+            handleClear();
+          }
+        } else if (key === 'p') {
           e.preventDefault();
-          handleCopyClaims();
+          if (!token) {
+            setAnnouncement("Cannot copy claims: No active token available");
+          } else {
+            handleCopyClaims();
+          }
         } else if (key === 'm' && !isRefreshingMetrics) {
           e.preventDefault();
           fetchMetrics(true);
-        } else if (key === 'v' && token) {
+        } else if (key === 'v') {
           e.preventDefault();
-          const nextShow = !showToken;
-          setShowToken(nextShow);
-          setAnnouncement(nextShow ? "Raw JWT shown" : "Raw JWT hidden");
+          if (!token) {
+            setAnnouncement("Cannot toggle token visibility: No active token available");
+          } else {
+            const nextShow = !showToken;
+            setShowToken(nextShow);
+            setAnnouncement(nextShow ? "Raw JWT shown" : "Raw JWT hidden");
+          }
         } else if (key === 'k') {
           e.preventDefault();
           const nextHelp = !showHelp;
@@ -644,7 +673,7 @@ function App() {
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="flex items-center gap-2">
-                    <label className="block text-sm font-medium text-slate-400">
+                    <label htmlFor="raw-token-container" className="block text-sm font-medium text-slate-400">
                       {isRevoked ? 'Revoked JWT' : 'Active JWT'}
                     </label>
                     {isRevoked && (
