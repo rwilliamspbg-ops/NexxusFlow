@@ -220,7 +220,10 @@ function App() {
     if (!token) return;
     try {
       const decoded = decodePayload(token);
-      if (!decoded) return;
+      if (!decoded) {
+        setAnnouncement('Cannot copy claims: Token payload could not be decoded');
+        return;
+      }
       await navigator.clipboard.writeText(JSON.stringify(decoded, null, 2));
       setCopiedClaims(true);
       setAnnouncement('Decoded payload claims copied to clipboard');
@@ -484,9 +487,13 @@ function App() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (!isIssuing && !isRevoking) {
-                handleAuth();
+              if (isIssuing || isRevoking) return;
+              if (isUserEmpty) {
+                setAnnouncement('Cannot issue token: User ID is empty');
+                userIdInputRef.current?.focus();
+                return;
               }
+              handleAuth();
             }}
             className="mb-6"
           >
