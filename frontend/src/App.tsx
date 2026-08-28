@@ -669,7 +669,7 @@ function App() {
                 disabled={isIssuing || isRevoking || isUserEmpty}
                 title={isUserEmpty ? "Cannot issue token: User ID is empty" : isIssuing || isRevoking ? "Action in progress" : "Issue Token (Alt + I)"}
                 aria-keyshortcuts="Alt+I"
-                className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
                 <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" />
                 <span>{isIssuing ? 'Issuing...' : 'Issue Token'}</span>
@@ -681,7 +681,7 @@ function App() {
                 disabled={!token || isIssuing || isRevoking}
                 title={!token ? "No active token to revoke" : isIssuing || isRevoking ? "Action in progress" : "Revoke Token (Alt + R)"}
                 aria-keyshortcuts="Alt+R"
-                className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-700 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
+                className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
               >
                 <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} aria-hidden="true" />
                 <span>{isRevoking ? 'Revoking...' : 'Revoke'}</span>
@@ -897,7 +897,7 @@ function App() {
                 disabled={isIssuing || isRevoking || isUserEmpty}
                 title={isUserEmpty ? "Cannot issue token: User ID is empty" : isIssuing || isRevoking ? "Action in progress" : "Quickly issue demo JWT token"}
                 aria-label={isIssuing ? "Issuing demo JWT token..." : "Quickly issue demo JWT token"}
-                className="mt-1 text-xs bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 text-emerald-400 hover:text-emerald-300 disabled:text-slate-600 px-3.5 py-1.5 rounded-lg border border-slate-700/80 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                className="mt-1 text-xs bg-slate-800 hover:bg-slate-700 disabled:bg-slate-800/50 text-emerald-400 hover:text-emerald-300 disabled:text-slate-600 disabled:cursor-not-allowed px-3.5 py-1.5 rounded-lg border border-slate-700/80 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
                 {isIssuing ? (
                   <RefreshCw className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
@@ -942,7 +942,7 @@ function App() {
                 aria-label="Refresh metrics (Alt + M)"
                 title="Refresh metrics (Alt + M)"
                 aria-keyshortcuts="Alt+M"
-                className="p-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                className="p-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-700 disabled:cursor-not-allowed border border-slate-700 transition-colors flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingMetrics ? 'animate-spin text-emerald-400' : ''}`} aria-hidden="true" />
                 <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+M</kbd>
