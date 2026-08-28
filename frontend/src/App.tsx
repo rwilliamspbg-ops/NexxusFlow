@@ -68,6 +68,7 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedClaims, setCopiedClaims] = useState(false);
+  const [copiedSegment, setCopiedSegment] = useState<string | null>(null);
   const [userId, setUserId] = useState('student_01');
   const [role, setRole] = useState('admin');
   const [metrics, setMetrics] = useState<any>(null);
@@ -230,6 +231,20 @@ function App() {
       setTimeout(() => setCopiedClaims(false), 2000);
     } catch (e) {
       console.error('Failed to copy claims to clipboard', e);
+    }
+  };
+
+  const handleCopySegment = async (index: number, name: string) => {
+    if (!token) return;
+    const parts = token.split('.');
+    if (parts.length !== 3 || !parts[index]) return;
+    try {
+      await navigator.clipboard.writeText(parts[index]);
+      setCopiedSegment(name);
+      setAnnouncement(`${name} segment copied to clipboard`);
+      setTimeout(() => setCopiedSegment(null), 2000);
+    } catch (e) {
+      console.error(`Failed to copy ${name} segment`, e);
     }
   };
 
@@ -776,36 +791,30 @@ function App() {
                     aria-label="JWT segment color guide"
                     role="list"
                   >
-                    <div
-                      className="flex items-center gap-1.5 cursor-help hover:text-rose-400 focus-visible:text-rose-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-rose-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
-                      role="listitem"
-                      tabIndex={0}
-                      title="Header: Contains metadata about the token type (JWT) and signing algorithm used (e.g., HS256)."
-                      aria-label="Header segment color guide. Rose color. Contains metadata about the token type (JWT) and signing algorithm used (e.g., HS256)."
-                    >
-                      <span className="w-2 h-2 rounded-full bg-rose-400 block shrink-0" aria-hidden="true" />
-                      <span className="font-medium">Rose: Header</span>
-                    </div>
-                    <div
-                      className="flex items-center gap-1.5 cursor-help hover:text-indigo-400 focus-visible:text-indigo-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-indigo-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
-                      role="listitem"
-                      tabIndex={0}
-                      title="Payload: Contains the core claims and user data, such as subject (sub) and roles, encoded as JSON."
-                      aria-label="Payload segment color guide. Indigo color. Contains the core claims and user data, such as subject (sub) and roles, encoded as JSON."
-                    >
-                      <span className="w-2 h-2 rounded-full bg-indigo-400 block shrink-0" aria-hidden="true" />
-                      <span className="font-medium">Indigo: Payload</span>
-                    </div>
-                    <div
-                      className="flex items-center gap-1.5 cursor-help hover:text-cyan-400 focus-visible:text-cyan-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-cyan-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
-                      role="listitem"
-                      tabIndex={0}
-                      title="Signature: Cryptographically ensures that the token has not been altered or tampered with."
-                      aria-label="Signature segment color guide. Cyan color. Cryptographically ensures that the token has not been altered or tampered with."
-                    >
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 block shrink-0" aria-hidden="true" />
-                      <span className="font-medium">Cyan: Signature</span>
-                    </div>
+                    {[
+                      { name: 'Header', color: 'rose', bg: 'bg-rose-400', hoverText: 'hover:text-rose-400 focus-visible:text-rose-400', ring: 'focus-visible:ring-rose-500/50', desc: 'Header: Contains metadata about the token type (JWT) and algorithm.' },
+                      { name: 'Payload', color: 'indigo', bg: 'bg-indigo-400', hoverText: 'hover:text-indigo-400 focus-visible:text-indigo-400', ring: 'focus-visible:ring-indigo-500/50', desc: 'Payload: Contains claims and user data encoded as JSON.' },
+                      { name: 'Signature', color: 'cyan', bg: 'bg-cyan-400', hoverText: 'hover:text-cyan-400 focus-visible:text-cyan-400', ring: 'focus-visible:ring-cyan-500/50', desc: 'Signature: Cryptographically verifies token integrity.' },
+                    ].map((seg, idx) => (
+                      <button
+                        key={seg.name}
+                        type="button"
+                        role="listitem"
+                        onClick={() => handleCopySegment(idx, seg.name)}
+                        className={`flex items-center gap-1.5 transition-colors duration-150 focus-visible:ring-2 ${seg.ring} rounded-md focus-visible:outline-none px-1.5 py-0.5 text-slate-400 ${seg.hoverText}`}
+                        title={`Click to copy ${seg.name} segment`}
+                        aria-label={copiedSegment === seg.name ? `${seg.name} segment copied to clipboard` : `Copy ${seg.name} segment (${seg.color}). ${seg.desc}`}
+                      >
+                        {copiedSegment === seg.name ? (
+                          <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                        ) : (
+                          <span className={`w-2 h-2 rounded-full ${seg.bg} block shrink-0`} aria-hidden="true" />
+                        )}
+                        <span className={`font-medium ${copiedSegment === seg.name ? 'text-emerald-400' : ''}`}>
+                          {copiedSegment === seg.name ? `Copied ${seg.name}!` : `${seg.color.charAt(0).toUpperCase() + seg.color.slice(1)}: ${seg.name}`}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -813,7 +822,7 @@ function App() {
               <div>
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="flex items-center gap-2">
-                    <span className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</span>
+                    <label htmlFor="decoded-claims-container" className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</label>
                     {(() => {
                       const expInfo = getTokenExpirationInfo(token);
                       if (!expInfo) return null;
@@ -858,6 +867,7 @@ function App() {
                   </button>
                 </div>
                 <div
+                  id="decoded-claims-container"
                   tabIndex={0}
                   aria-label="Decoded payload claims list"
                   className={`bg-slate-950 p-4 rounded-lg border font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all duration-300 ${
