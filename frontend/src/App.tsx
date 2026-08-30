@@ -584,9 +584,22 @@ function App() {
                       User ID cannot be empty or only spaces.
                     </span>
                   ) : hasSpaces ? (
-                    <span className="text-amber-400 flex items-center gap-1">
+                    <span className="text-amber-400 flex items-center gap-1.5 flex-wrap">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                      Leading/trailing spaces will be trimmed by the server.
+                      <span>Leading/trailing spaces will be trimmed by the server.</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setUserId(trimmedUserId);
+                          setAnnouncement('User ID whitespace trimmed');
+                          userIdInputRef.current?.focus();
+                        }}
+                        aria-label="Trim leading and trailing spaces from User ID"
+                        title="Trim leading and trailing spaces"
+                        className="ml-1 px-1.5 py-0.5 text-[10px] font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-amber-400 focus-visible:outline-none"
+                      >
+                        Trim now
+                      </button>
                     </span>
                   ) : (
                     <span className="text-emerald-400 flex items-center gap-1">
