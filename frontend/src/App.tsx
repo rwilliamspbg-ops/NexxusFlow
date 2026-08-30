@@ -774,7 +774,8 @@ function App() {
                 <div
                   id="raw-token-container"
                   tabIndex={0}
-                  aria-label={isRevoked ? "Revoked JSON Web Token container" : "Active JSON Web Token container"}
+                  aria-label={`${isRevoked ? "Revoked" : "Active"} JSON Web Token container (${showToken ? "Full raw JWT unmasked" : "Privacy masked signature preview"})`}
+                  title={showToken ? "Full raw JSON Web Token string" : "Truncated signature for privacy protection during screen sharing"}
                   className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                     copied
                       ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
@@ -869,11 +870,13 @@ function App() {
                 <div
                   id="decoded-claims-container"
                   tabIndex={0}
-                  aria-label="Decoded payload claims list"
-                  className={`bg-slate-950 p-4 rounded-lg border font-mono text-xs text-amber-300 overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all duration-300 ${
+                  aria-label={isRevoked ? "Revoked decoded payload claims list" : "Decoded payload claims list"}
+                  className={`bg-slate-950 p-4 rounded-lg border font-mono text-xs overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all duration-300 ${
                     copiedClaims
                       ? 'border-amber-500 bg-amber-500/5 text-amber-200 shadow-md shadow-amber-500/5 scale-[1.01]'
-                      : 'border-slate-800'
+                      : isRevoked
+                      ? 'border-rose-500/40 bg-rose-500/5 text-rose-300/80'
+                      : 'border-slate-800 text-amber-300'
                   }`}
                 >
                   {JSON.stringify(decodePayload(token), null, 2)}
