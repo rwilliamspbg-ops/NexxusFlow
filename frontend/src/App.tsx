@@ -69,6 +69,7 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [copiedClaims, setCopiedClaims] = useState(false);
   const [copiedSegment, setCopiedSegment] = useState<string | null>(null);
+  const [activeSegment, setActiveSegment] = useState<string | null>(null);
   const [userId, setUserId] = useState('student_01');
   const [role, setRole] = useState('admin');
   const [metrics, setMetrics] = useState<any>(null);
@@ -390,13 +391,17 @@ function App() {
     if (!showToken) return t.length <= 24 ? t : `${t.slice(0, 12)}...${t.slice(-12)}`;
     const parts = t.split('.');
     if (parts.length !== 3) return t;
+    const isHeaderActive = activeSegment === 'Header' || copiedSegment === 'Header';
+    const isPayloadActive = activeSegment === 'Payload' || copiedSegment === 'Payload';
+    const isSignatureActive = activeSegment === 'Signature' || copiedSegment === 'Signature';
+
     return (
       <>
-        <span className={`text-rose-400 font-semibold transition-all duration-300 ${copiedSegment === 'Header' ? 'bg-rose-500/20 ring-1 ring-rose-400/60 rounded px-1 shadow-sm shadow-rose-500/10' : ''}`} title="Header: Algorithm & Type">{parts[0]}</span>
+        <span className={`text-rose-400 font-semibold transition-all duration-300 ${isHeaderActive ? 'bg-rose-500/20 ring-1 ring-rose-400/60 rounded px-1 shadow-sm shadow-rose-500/10' : ''}`} title="Header: Algorithm & Type">{parts[0]}</span>
         <span className="text-slate-500">.</span>
-        <span className={`text-indigo-400 font-semibold transition-all duration-300 ${copiedSegment === 'Payload' ? 'bg-indigo-500/20 ring-1 ring-indigo-400/60 rounded px-1 shadow-sm shadow-indigo-500/10' : ''}`} title="Payload: Claims & Data">{parts[1]}</span>
+        <span className={`text-indigo-400 font-semibold transition-all duration-300 ${isPayloadActive ? 'bg-indigo-500/20 ring-1 ring-indigo-400/60 rounded px-1 shadow-sm shadow-indigo-500/10' : ''}`} title="Payload: Claims & Data">{parts[1]}</span>
         <span className="text-slate-500">.</span>
-        <span className={`text-cyan-400 font-semibold transition-all duration-300 ${copiedSegment === 'Signature' ? 'bg-cyan-500/20 ring-1 ring-cyan-400/60 rounded px-1 shadow-sm shadow-cyan-500/10' : ''}`} title="Signature: Security Verification Key">{parts[2]}</span>
+        <span className={`text-cyan-400 font-semibold transition-all duration-300 ${isSignatureActive ? 'bg-cyan-500/20 ring-1 ring-cyan-400/60 rounded px-1 shadow-sm shadow-cyan-500/10' : ''}`} title="Signature: Security Verification Key">{parts[2]}</span>
       </>
     );
   };
@@ -815,6 +820,10 @@ function App() {
                         type="button"
                         role="listitem"
                         onClick={() => handleCopySegment(idx, seg.name)}
+                        onMouseEnter={() => setActiveSegment(seg.name)}
+                        onMouseLeave={() => setActiveSegment(null)}
+                        onFocus={() => setActiveSegment(seg.name)}
+                        onBlur={() => setActiveSegment(null)}
                         className={`flex items-center gap-1.5 transition-colors duration-150 focus-visible:ring-2 ${seg.ring} rounded-md focus-visible:outline-none px-1.5 py-0.5 text-slate-400 ${seg.hoverText}`}
                         title={`Click to copy ${seg.name} segment`}
                         aria-label={copiedSegment === seg.name ? `${seg.name} segment copied to clipboard` : `Copy ${seg.name} segment (${seg.color}). ${seg.desc}`}
