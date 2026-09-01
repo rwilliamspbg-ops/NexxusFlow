@@ -392,11 +392,11 @@ function App() {
     if (parts.length !== 3) return t;
     return (
       <>
-        <span className="text-rose-400 font-semibold" title="Header: Algorithm & Type">{parts[0]}</span>
+        <span className={`text-rose-400 font-semibold transition-all duration-300 ${copiedSegment === 'Header' ? 'bg-rose-500/20 ring-1 ring-rose-400/60 rounded px-1 shadow-sm shadow-rose-500/10' : ''}`} title="Header: Algorithm & Type">{parts[0]}</span>
         <span className="text-slate-500">.</span>
-        <span className="text-indigo-400 font-semibold" title="Payload: Claims & Data">{parts[1]}</span>
+        <span className={`text-indigo-400 font-semibold transition-all duration-300 ${copiedSegment === 'Payload' ? 'bg-indigo-500/20 ring-1 ring-indigo-400/60 rounded px-1 shadow-sm shadow-indigo-500/10' : ''}`} title="Payload: Claims & Data">{parts[1]}</span>
         <span className="text-slate-500">.</span>
-        <span className="text-cyan-400 font-semibold" title="Signature: Security Verification Key">{parts[2]}</span>
+        <span className={`text-cyan-400 font-semibold transition-all duration-300 ${copiedSegment === 'Signature' ? 'bg-cyan-500/20 ring-1 ring-cyan-400/60 rounded px-1 shadow-sm shadow-cyan-500/10' : ''}`} title="Signature: Security Verification Key">{parts[2]}</span>
       </>
     );
   };
