@@ -901,7 +901,7 @@ function App() {
                       : 'border-slate-800 text-amber-300'
                   }`}
                 >
-                  {JSON.stringify(decodePayload(token), null, 2)}
+                  {decodePayload(token) ? JSON.stringify(decodePayload(token), null, 2) : 'Unable to decode JWT payload claims'}
                 </div>
               </div>
             </div>
