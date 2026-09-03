@@ -903,6 +903,40 @@ function App() {
                 >
                   {decodePayload(token) ? JSON.stringify(decodePayload(token), null, 2) : 'Unable to decode JWT payload claims'}
                 </div>
+                {(() => {
+                  const payload = decodePayload(token);
+                  if (!payload || (typeof payload.iat !== 'number' && typeof payload.exp !== 'number')) return null;
+                  const formatTime = (ts: number) => {
+                    try {
+                      return new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    } catch {
+                      return null;
+                    }
+                  };
+                  const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
+                  const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
+                  if (!iatStr && !expStr) return null;
+
+                  return (
+                    <div
+                      className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1 font-mono"
+                      aria-label="Token timestamp claims summary"
+                    >
+                      {iatStr && (
+                        <span className="flex items-center gap-1 text-slate-400" title={`Issued At (iat): ${new Date(payload.iat * 1000).toISOString()}`}>
+                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                          <span>Issued: <strong className="text-slate-300 font-medium">{iatStr}</strong></span>
+                        </span>
+                      )}
+                      {expStr && (
+                        <span className="flex items-center gap-1 text-slate-400" title={`Expires At (exp): ${new Date(payload.exp * 1000).toISOString()}`}>
+                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                          <span>Expires: <strong className="text-slate-300 font-medium">{expStr}</strong></span>
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           ) : (
