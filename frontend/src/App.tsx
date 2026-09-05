@@ -905,7 +905,7 @@ function App() {
                 </div>
                 {(() => {
                   const payload = decodePayload(token);
-                  if (!payload || (typeof payload.iat !== 'number' && typeof payload.exp !== 'number')) return null;
+                  if (!payload || (typeof payload.iat !== 'number' && typeof payload.nbf !== 'number' && typeof payload.exp !== 'number')) return null;
                   const formatTime = (ts: number) => {
                     try {
                       return new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -914,8 +914,9 @@ function App() {
                     }
                   };
                   const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
+                  const nbfStr = typeof payload.nbf === 'number' ? formatTime(payload.nbf) : null;
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
-                  if (!iatStr && !expStr) return null;
+                  if (!iatStr && !nbfStr && !expStr) return null;
 
                   return (
                     <div
@@ -926,6 +927,12 @@ function App() {
                         <span className="flex items-center gap-1 text-slate-400" title={`Issued At (iat): ${new Date(payload.iat * 1000).toISOString()}`}>
                           <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
                           <span>Issued: <strong className="text-slate-300 font-medium">{iatStr}</strong></span>
+                        </span>
+                      )}
+                      {nbfStr && (
+                        <span className="flex items-center gap-1 text-slate-400" title={`Not Before (nbf): ${new Date(payload.nbf * 1000).toISOString()}`}>
+                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                          <span>Valid From: <strong className="text-slate-300 font-medium">{nbfStr}</strong></span>
                         </span>
                       )}
                       {expStr && (
