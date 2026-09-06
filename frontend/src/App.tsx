@@ -42,24 +42,25 @@ const ROLE_BADGES: Record<string, { label: string, colorClass: string }> = {
   },
 };
 
-const getTokenExpirationInfo = (jwt: string): { label: string; isExpired: boolean } | null => {
+const getTokenExpirationInfo = (jwt: string): { label: string; isExpired: boolean; isNearExpiry: boolean } | null => {
   const payload = decodePayload(jwt);
   if (!payload || typeof payload.exp !== 'number') return null;
   const now = Math.floor(Date.now() / 1000);
   const diffSec = payload.exp - now;
   if (diffSec <= 0) {
-    return { label: 'Token Expired', isExpired: true };
+    return { label: 'Token Expired', isExpired: true, isNearExpiry: false };
   }
+  const isNearExpiry = diffSec <= 60;
   const mins = Math.floor(diffSec / 60);
   if (mins < 1) {
-    return { label: 'Expires in < 1m', isExpired: false };
+    return { label: 'Expires in < 1m', isExpired: false, isNearExpiry };
   }
   if (mins < 60) {
-    return { label: `Expires in ${mins}m`, isExpired: false };
+    return { label: `Expires in ${mins}m`, isExpired: false, isNearExpiry };
   }
   const hours = Math.floor(mins / 60);
   const remMins = mins % 60;
-  return { label: remMins > 0 ? `Expires in ${hours}h ${remMins}m` : `Expires in ${hours}h`, isExpired: false };
+  return { label: remMins > 0 ? `Expires in ${hours}h ${remMins}m` : `Expires in ${hours}h`, isExpired: false, isNearExpiry };
 };
 
 function App() {
@@ -854,15 +855,25 @@ function App() {
                         <span
                           role="status"
                           aria-live="polite"
-                          title={isRevoked ? `This JWT token has been revoked (${expInfo.label})` : expInfo.isExpired ? "This JWT token has expired" : `Remaining token validity: ${expInfo.label}`}
+                          title={
+                            isRevoked
+                              ? `This JWT token has been revoked (${expInfo.label})`
+                              : expInfo.isExpired
+                              ? 'This JWT token has expired'
+                              : expInfo.isNearExpiry
+                              ? `Warning: JWT token expires in less than 1 minute (${expInfo.label})`
+                              : `Remaining token validity: ${expInfo.label}`
+                          }
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
                             isBadgeExpiredOrRevoked
                               ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                              : expInfo.isNearExpiry
+                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse'
                               : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                           }`}
                         >
                           <Clock className="w-3 h-3" aria-hidden="true" />
-                          <span>{isRevoked ? `${expInfo.label} (Revoked)` : expInfo.label}</span>
+                          <span>{isRevoked ? `${expInfo.label} (Revoked)` : expInfo.isNearExpiry ? `${expInfo.label} (Expiring Soon)` : expInfo.label}</span>
                         </span>
                       );
                     })()}
