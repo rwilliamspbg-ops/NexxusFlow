@@ -90,6 +90,12 @@ function App() {
   const trimmedUserId = userId.trim();
   const isUserEmpty = trimmedUserId === '';
   const hasSpaces = userId !== trimmedUserId;
+  const activePayload = token ? decodePayload(token) : null;
+  const isFormModified = Boolean(
+    activePayload &&
+      !isUserEmpty &&
+      (trimmedUserId !== activePayload.sub || role !== activePayload.role)
+  );
   const progressPercent = Math.min((userId.length / 128) * 100, 100);
   const barColor = userId.length === 128
     ? 'bg-rose-500 animate-pulse'
@@ -501,9 +507,22 @@ function App() {
 
       <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         <section className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Key className="w-5 h-5 text-emerald-400" aria-hidden="true" /> Token Management
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <Key className="w-5 h-5 text-emerald-400" aria-hidden="true" /> Token Management
+            </h2>
+            {isFormModified && (
+              <span
+                role="status"
+                aria-live="polite"
+                title="Form inputs (User ID or Role) differ from active token claims. Click 'Reissue Token' to update."
+                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full border bg-amber-500/10 border-amber-500/30 text-amber-400 flex items-center gap-1 transition-all animate-pulse"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+                <span>Inputs Modified</span>
+              </span>
+            )}
+          </div>
 
           <form
             onSubmit={(e) => {
@@ -686,12 +705,24 @@ function App() {
               <button
                 type="submit"
                 disabled={isIssuing || isRevoking || isUserEmpty}
-                title={isUserEmpty ? "Cannot issue token: User ID is empty" : isIssuing || isRevoking ? "Action in progress" : "Issue Token (Alt + I)"}
+                title={
+                  isUserEmpty
+                    ? "Cannot issue token: User ID is empty"
+                    : isFormModified
+                    ? "Form inputs modified from active token. Click to issue updated token (Alt + I)"
+                    : isIssuing || isRevoking
+                    ? "Action in progress"
+                    : "Issue Token (Alt + I)"
+                }
                 aria-keyshortcuts="Alt+I"
-                className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                className={`flex-1 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                  isFormModified && !isIssuing && !isRevoking
+                    ? 'bg-emerald-600 hover:bg-emerald-500 ring-2 ring-amber-500/40'
+                    : 'bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed'
+                }`}
               >
                 <RefreshCw className={`w-4 h-4 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" />
-                <span>{isIssuing ? 'Issuing...' : 'Issue Token'}</span>
+                <span>{isIssuing ? 'Issuing...' : isFormModified ? 'Reissue Token' : 'Issue Token'}</span>
                 <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-300 bg-slate-900/40 border border-slate-500/30 rounded" aria-hidden="true">Alt+I</kbd>
               </button>
               <button
