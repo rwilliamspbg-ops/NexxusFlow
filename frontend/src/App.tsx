@@ -512,15 +512,22 @@ function App() {
               <Key className="w-5 h-5 text-emerald-400" aria-hidden="true" /> Token Management
             </h2>
             {isFormModified && (
-              <span
-                role="status"
+              <button
+                type="button"
+                onClick={() => {
+                  if (activePayload?.sub) setUserId(activePayload.sub);
+                  if (activePayload?.role) setRole(activePayload.role);
+                  setAnnouncement(`Form inputs restored to active token claims: User ID ${activePayload?.sub}, Role ${activePayload?.role}`);
+                  userIdInputRef.current?.focus();
+                }}
                 aria-live="polite"
-                title="Form inputs (User ID or Role) differ from active token claims. Click 'Reissue Token' to update."
-                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full border bg-amber-500/10 border-amber-500/30 text-amber-400 flex items-center gap-1 transition-all animate-pulse"
+                title="Form inputs differ from active token claims. Click to restore fields to active token claims."
+                aria-label="Inputs modified. Click to restore User ID and Role to active token claims."
+                className="text-[10px] font-semibold px-2.5 py-0.5 rounded-full border bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 hover:border-amber-500/50 text-amber-400 flex items-center gap-1 transition-all animate-pulse focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-amber-400 focus-visible:outline-none cursor-pointer"
               >
-                <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Inputs Modified</span>
-              </span>
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span>Inputs Modified <span className="underline decoration-amber-400/50 underline-offset-2">(Restore)</span></span>
+              </button>
             )}
           </div>
 
