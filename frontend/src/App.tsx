@@ -414,7 +414,18 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-8 font-sans">
+    <div className="min-h-screen bg-slate-900 text-slate-100 p-8 font-sans relative">
+      <a
+        href="#main-content"
+        onClick={(e) => {
+          e.preventDefault();
+          userIdInputRef.current?.focus();
+          setAnnouncement("Navigated directly to main form input");
+        }}
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-xl border border-emerald-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-900 focus:ring-emerald-400 transition-all"
+      >
+        Skip to main content
+      </a>
       <div className="sr-only" aria-live="polite" role="status">
         {announcement}
       </div>
@@ -505,7 +516,7 @@ function App() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <main id="main-content" tabIndex={-1} className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 focus:outline-none">
         <section className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold flex items-center gap-2">
