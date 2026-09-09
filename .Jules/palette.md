@@ -1,3 +1,7 @@
+## 2026-09-02 - [Preserve Native Button Semantics in List Items and Tooltip Triggers]
+**Learning:** Assigning `role="listitem"` or `role="tooltip"` directly to HTML `<button>` or `<span tabIndex={0}>` elements overrides native element roles in browser accessibility trees, causing screen readers and automation tools to lose button semantics. Wrapping segment buttons inside `<div role="listitem">` containers preserves list navigation alongside native `<button type="button">` semantics, and upgrading tooltip triggers to native `<button type="button">` elements provides robust accessible button semantics.
+**Action:** Always wrap list buttons inside distinct `<div role="listitem">` containers rather than overriding button roles, and use native `<button type="button">` controls with descriptive `aria-label` text for tooltip triggers.
+
 ## 2026-09-01 - [Skip to Main Content Link with Programmatic Input Focus Restoration]
 **Learning:** In single-page command centers with header navigation and status indicators, adding a keyboard-accessible skip-to-content link (`sr-only focus:not-sr-only focus:absolute`) that programmatically shifts focus directly to the primary text input (`userIdInputRef.current?.focus()`) and announces the action via `aria-live` provides immediate WCAG 2.4.1 (Bypass Blocks) compliance while accelerating keyboard workflow.
 **Action:** Include a focus-visible skip-to-content link at the top of single-page apps that programmatically focuses the primary form control and announces navigation state via the live announcer.
