@@ -1133,6 +1133,7 @@ function App() {
 
 function MetricCard({ title, value, color, description }: { title: string, value: number | string, color: string, description?: string }) {
   const [highlight, setHighlight] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
   const prevValue = useRef(value);
 
   useEffect(() => {
@@ -1153,6 +1154,8 @@ function MetricCard({ title, value, color, description }: { title: string, value
     highlightClass = 'border-blue-500/50 bg-slate-800/80 shadow-lg shadow-blue-500/5';
   }
 
+  const cardId = `metric-desc-${title.replace(/\s+/g, '-').toLowerCase()}`;
+
   return (
     <div
       className={`p-4 rounded-xl border transition-all duration-300 ${
@@ -1165,9 +1168,14 @@ function MetricCard({ title, value, color, description }: { title: string, value
         {description && (
           <button
             type="button"
-            className="cursor-help text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400 transition-colors flex items-center focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none"
-            title={description}
-            aria-label={`${title} description: ${description}`}
+            onClick={() => setShowInfo(!showInfo)}
+            aria-expanded={showInfo}
+            aria-controls={cardId}
+            className={`cursor-pointer transition-colors flex items-center focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none ${
+              showInfo ? 'text-emerald-400 bg-slate-800' : 'text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400'
+            }`}
+            title={showInfo ? `Hide ${title} description` : description}
+            aria-label={showInfo ? `Hide ${title} description` : `${title} description: ${description}`}
           >
             <Info className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
@@ -1176,6 +1184,11 @@ function MetricCard({ title, value, color, description }: { title: string, value
       <div className={`text-2xl font-bold transition-transform duration-300 ${color} ${highlight ? 'scale-105 origin-left' : ''}`}>
         {value}
       </div>
+      {description && showInfo && (
+        <p id={cardId} className="text-[11px] text-slate-400 mt-2 pt-2 border-t border-slate-800/80 leading-relaxed font-normal normal-case">
+          {description}
+        </p>
+      )}
     </div>
   );
 }
