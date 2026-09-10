@@ -865,28 +865,28 @@ function App() {
                       { name: 'Payload', color: 'indigo', bg: 'bg-indigo-400', hoverText: 'hover:text-indigo-400 focus-visible:text-indigo-400', ring: 'focus-visible:ring-indigo-500/50', desc: 'Payload: Contains claims and user data encoded as JSON.' },
                       { name: 'Signature', color: 'cyan', bg: 'bg-cyan-400', hoverText: 'hover:text-cyan-400 focus-visible:text-cyan-400', ring: 'focus-visible:ring-cyan-500/50', desc: 'Signature: Cryptographically verifies token integrity.' },
                     ].map((seg, idx) => (
-                      <button
-                        key={seg.name}
-                        type="button"
-                        role="listitem"
-                        onClick={() => handleCopySegment(idx, seg.name)}
-                        onMouseEnter={() => setActiveSegment(seg.name)}
-                        onMouseLeave={() => setActiveSegment(null)}
-                        onFocus={() => setActiveSegment(seg.name)}
-                        onBlur={() => setActiveSegment(null)}
-                        className={`flex items-center gap-1.5 transition-colors duration-150 focus-visible:ring-2 ${seg.ring} rounded-md focus-visible:outline-none px-1.5 py-0.5 text-slate-400 ${seg.hoverText}`}
-                        title={`Click to copy ${seg.name} segment`}
-                        aria-label={copiedSegment === seg.name ? `${seg.name} segment copied to clipboard` : `Copy ${seg.name} segment (${seg.color}). ${seg.desc}`}
-                      >
-                        {copiedSegment === seg.name ? (
-                          <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
-                        ) : (
-                          <span className={`w-2 h-2 rounded-full ${seg.bg} block shrink-0`} aria-hidden="true" />
-                        )}
-                        <span className={`font-medium ${copiedSegment === seg.name ? 'text-emerald-400' : ''}`}>
-                          {copiedSegment === seg.name ? `Copied ${seg.name}!` : `${seg.color.charAt(0).toUpperCase() + seg.color.slice(1)}: ${seg.name}`}
-                        </span>
-                      </button>
+                      <div key={seg.name} role="listitem">
+                        <button
+                          type="button"
+                          onClick={() => handleCopySegment(idx, seg.name)}
+                          onMouseEnter={() => setActiveSegment(seg.name)}
+                          onMouseLeave={() => setActiveSegment(null)}
+                          onFocus={() => setActiveSegment(seg.name)}
+                          onBlur={() => setActiveSegment(null)}
+                          className={`flex items-center gap-1.5 transition-colors duration-150 focus-visible:ring-2 ${seg.ring} rounded-md focus-visible:outline-none px-1.5 py-0.5 text-slate-400 ${seg.hoverText}`}
+                          title={`Click to copy ${seg.name} segment`}
+                          aria-label={copiedSegment === seg.name ? `${seg.name} segment copied to clipboard` : `Copy ${seg.name} segment (${seg.color}). ${seg.desc}`}
+                        >
+                          {copiedSegment === seg.name ? (
+                            <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                          ) : (
+                            <span className={`w-2 h-2 rounded-full ${seg.bg} block shrink-0`} aria-hidden="true" />
+                          )}
+                          <span className={`font-medium ${copiedSegment === seg.name ? 'text-emerald-400' : ''}`}>
+                            {copiedSegment === seg.name ? `Copied ${seg.name}!` : `${seg.color.charAt(0).toUpperCase() + seg.color.slice(1)}: ${seg.name}`}
+                          </span>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -1163,15 +1163,14 @@ function MetricCard({ title, value, color, description }: { title: string, value
       <div className="flex items-center justify-between text-xs font-medium text-slate-500 uppercase mb-1">
         <span>{title}</span>
         {description && (
-          <span
+          <button
+            type="button"
             className="cursor-help text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400 transition-colors flex items-center focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none"
             title={description}
-            aria-label={description}
-            tabIndex={0}
-            role="tooltip"
+            aria-label={`${title} description: ${description}`}
           >
             <Info className="w-3.5 h-3.5" aria-hidden="true" />
-          </span>
+          </button>
         )}
       </div>
       <div className={`text-2xl font-bold transition-transform duration-300 ${color} ${highlight ? 'scale-105 origin-left' : ''}`}>
