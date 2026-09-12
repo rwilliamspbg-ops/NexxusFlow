@@ -53,7 +53,7 @@ const getTokenExpirationInfo = (jwt: string): { label: string; isExpired: boolea
   const isNearExpiry = diffSec <= 60;
   const mins = Math.floor(diffSec / 60);
   if (mins < 1) {
-    return { label: 'Expires in < 1m', isExpired: false, isNearExpiry };
+    return { label: `Expires in ${diffSec}s`, isExpired: false, isNearExpiry };
   }
   if (mins < 60) {
     return { label: `Expires in ${mins}m`, isExpired: false, isNearExpiry };
@@ -80,6 +80,7 @@ function App() {
   const [announcement, setAnnouncement] = useState('');
   const [isOffline, setIsOffline] = useState(false);
   const [isRefreshingMetrics, setIsRefreshingMetrics] = useState(false);
+  const [, setTick] = useState(0);
   const timeoutRef = useRef<any>(null);
   const userIdInputRef = useRef<HTMLInputElement | null>(null);
   const helpDialogRef = useRef<HTMLDivElement | null>(null);
@@ -137,6 +138,12 @@ function App() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    const ticker = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(ticker);
+  }, [token]);
 
   useEffect(() => {
     if (showHelp) {
