@@ -453,6 +453,7 @@ function App() {
               }}
               className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
               aria-expanded={showHelp}
+              aria-controls="keyboard-shortcuts-dialog"
               aria-haspopup="true"
               aria-label="Toggle keyboard shortcuts help"
             >
@@ -462,6 +463,7 @@ function App() {
             {showHelp && (
               <div
                 ref={helpDialogRef}
+                id="keyboard-shortcuts-dialog"
                 className="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 z-50 text-xs text-slate-300"
                 role="dialog"
                 aria-modal="true"
@@ -491,6 +493,9 @@ function App() {
                   <div className="flex justify-between items-center" role="listitem"><span>Toggle JWT Visibility</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+V</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Refresh Metrics</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+M</kbd></div>
                   <div className="flex justify-between items-center text-slate-400" role="listitem"><span>Toggle This Help</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+K</kbd></div>
+                </div>
+                <div className="mt-3 pt-2 border-t border-slate-700/60 text-[10px] text-slate-400 flex justify-between items-center">
+                  <span>Press <kbd className="bg-slate-950 px-1 py-0.5 border border-slate-700 rounded font-mono text-[9px]">Esc</kbd> to dismiss</span>
                 </div>
               </div>
             )}
@@ -908,29 +913,44 @@ function App() {
                       if (!expInfo) return null;
                       const isBadgeExpiredOrRevoked = expInfo.isExpired || isRevoked;
                       return (
-                        <span
-                          role="status"
-                          aria-live="polite"
-                          title={
-                            isRevoked
-                              ? `This JWT token has been revoked (${expInfo.label})`
-                              : expInfo.isExpired
-                              ? 'This JWT token has expired'
-                              : expInfo.isNearExpiry
-                              ? `Warning: JWT token expires in less than 1 minute (${expInfo.label})`
-                              : `Remaining token validity: ${expInfo.label}`
-                          }
-                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
-                            isBadgeExpiredOrRevoked
-                              ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                              : expInfo.isNearExpiry
-                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse'
-                              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                          }`}
-                        >
-                          <Clock className="w-3 h-3" aria-hidden="true" />
-                          <span>{isRevoked ? `${expInfo.label} (Revoked)` : expInfo.isNearExpiry ? `${expInfo.label} (Expiring Soon)` : expInfo.label}</span>
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            role="status"
+                            aria-live="polite"
+                            title={
+                              isRevoked
+                                ? `This JWT token has been revoked (${expInfo.label})`
+                                : expInfo.isExpired
+                                ? 'This JWT token has expired'
+                                : expInfo.isNearExpiry
+                                ? `Warning: JWT token expires in less than 1 minute (${expInfo.label})`
+                                : `Remaining token validity: ${expInfo.label}`
+                            }
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
+                              isBadgeExpiredOrRevoked
+                                ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                                : expInfo.isNearExpiry
+                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 animate-pulse'
+                                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                            }`}
+                          >
+                            <Clock className="w-3 h-3" aria-hidden="true" />
+                            <span>{isRevoked ? `${expInfo.label} (Revoked)` : expInfo.isNearExpiry ? `${expInfo.label} (Expiring Soon)` : expInfo.label}</span>
+                          </span>
+                          {expInfo.isExpired && !isRevoked && (
+                            <button
+                              type="button"
+                              onClick={handleAuth}
+                              disabled={isIssuing || isRevoking || isUserEmpty}
+                              title="Token expired. Click to reissue a fresh token."
+                              aria-label="Token expired. Reissue fresh token"
+                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-rose-500/20 hover:bg-rose-500/30 border-rose-500/40 hover:border-rose-500/60 text-rose-300 flex items-center gap-1 transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-400 focus-visible:outline-none cursor-pointer"
+                            >
+                              <RefreshCw className={`w-3 h-3 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" />
+                              <span>Reissue</span>
+                            </button>
+                          )}
+                        </div>
                       );
                     })()}
                   </div>
