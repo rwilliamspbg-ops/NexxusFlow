@@ -1,3 +1,7 @@
+## 2026-09-05 - [Browser Input Text Transformations for Technical Identifiers]
+**Learning:** Default browser behaviors on standard `<input type="text">` fields (such as automatic capitalization on mobile devices, spellcheck underlines, autocorrect, and intrusive autofill popups) create friction when users enter technical identifiers (e.g. `student_01`, `operator_99`, `admin_root`). Disabling these behaviors via explicit attributes (`autoComplete="off"`, `spellCheck={false}`, `autoCorrect="off"`, `autoCapitalize="none"`) ensures clean, uninterrupted input entry for technical identity claims.
+**Action:** Always append `autoComplete="off"`, `spellCheck={false}`, `autoCorrect="off"`, and `autoCapitalize="none"` to text inputs accepting technical usernames, keys, tokens, or identifiers.
+
 ## 2026-09-04 - [Inline Credential Recovery Actions for Expired Status Badges]
 **Learning:** In interactive security labs displaying credential lifecycles (such as JWT expiration status badges), informing the user that a token has expired without providing an immediate inline recovery control forces users to break context and search for primary form buttons. Adding an inline, ARIA-accessible "Reissue" micro-button right next to the "Token Expired" status badge allows developers testing short-lived tokens to instantly issue a fresh credential in one click while preserving form parameters.
 **Action:** Always complement expired credential status badges with an inline, ARIA-accessible "Reissue" micro-action button equipped with loading spinners and focus rings.

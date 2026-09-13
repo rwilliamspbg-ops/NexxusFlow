@@ -596,6 +596,10 @@ function App() {
                     maxLength={128}
                     required
                     aria-required="true"
+                    autoComplete="off"
+                    spellCheck={false}
+                    autoCorrect="off"
+                    autoCapitalize="none"
                     placeholder="e.g., student_01"
                     aria-describedby="userId-helper userId-validation"
                     className={`w-full bg-slate-900 border rounded-lg pl-4 pr-10 py-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:outline-none outline-none transition-all duration-150 ${
