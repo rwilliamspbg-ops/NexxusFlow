@@ -660,6 +660,11 @@ function App() {
                         Trim now
                       </button>
                     </span>
+                  ) : userId.length === 128 ? (
+                    <span className="text-rose-400 flex items-center gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                      Maximum length limit reached (128 characters).
+                    </span>
                   ) : (
                     <span className="text-emerald-400 flex items-center gap-1">
                       <Check className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
