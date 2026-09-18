@@ -1,3 +1,7 @@
+## 2026-09-07 - [Calculated Token Lifetime Duration and Claim Count Indicators in Educational Security Dashboards]
+**Learning:** In JWT educational labs displaying decoded payload claims, wall-clock timestamps (`Issued: 10:00:00`, `Expires: 11:00:00`) still require developers to calculate the configured token TTL duration manually. Adding a calculated token lifetime indicator (`Lifetime: 1h`) to the timestamp summary bar alongside an inline, non-wrapping claim count badge (`4 claims`) in the claims header provides immediate context on token validity parameters without cluttering raw JSON views.
+**Action:** Always complement raw UNIX timestamp conversions with an explicit calculated lifetime duration (`exp - iat`) and an inline claim count metadata badge styled with `whitespace-nowrap shrink-0`.
+
 ## 2026-09-06 - [Keyboard Focus Trapping in ARIA Modal Dialog Overlays]
 **Learning:** Marking an overlay element with `role="dialog"` and `aria-modal="true"` signals to assistive technologies that user interaction is restricted to the modal overlay. However, if pressing `Tab` while focus is on internal controls allows keyboard focus to escape to background DOM elements, keyboard-only navigators lose context. Catching `Tab` keydown events on `aria-modal="true"` dialog containers (`e.preventDefault()`) and keeping focus trapped on internal interactive controls prevents focus leaks and maintains compliant modal focus behavior.
 **Action:** Always attach an `onKeyDown` handler to `aria-modal="true"` dialog containers to catch `Tab` keypresses and trap keyboard focus on internal modal controls.
@@ -44,7 +48,7 @@
 
 ## 2026-08-26 - [Interactive Segment Color Guide Buttons for Multi-Part Credentials]
 **Learning:** Converting passive cryptographic token segment legends into interactive, tab-focusable `<button>` elements (`role="listitem"`, `type="button"`) allows developers studying multi-part credentials to copy individual base64url-encoded segments (Header, Payload, Signature) directly with single-click actions. Providing immediate checkmark visual feedback and live ARIA announcements ensures parity across visual and screen-reader interactions without interfering with text selection on the main raw JWT block.
-**Action:** Upgrade passive segment legend indicators into dedicated, interactive `<button>` elements with `type="button"`, ARIA live feedback, focus-visible outlines, and temporary checkmark success states.
+**Action:** Upgrade passive segment legend indicators into dedicated, interactive `<button>` elements with `type="type"`, ARIA live feedback, focus-visible outlines, and temporary checkmark success states.
 
 ## 2026-08-25 - [Form Submission Validation Parity and Fallback Screen Reader Announcements]
 **Learning:** When a form submission button is visually disabled due to input validation (e.g. empty User ID), native `<form onSubmit>` handlers triggered via pressing Enter in text inputs bypass the button's `disabled` state unless explicitly guarded. Guarding `onSubmit` with identical validation logic, screen-reader polite announcements, and focus retention ensures validation parity across both mouse and keyboard submission vectors. Additionally, handling non-decodable token payloads in action handlers (such as copying claims) with explicit fallback live announcements prevents silent failures for screen-reader users.
