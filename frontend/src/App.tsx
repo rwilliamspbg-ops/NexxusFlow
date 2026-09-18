@@ -471,6 +471,12 @@ function App() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Keyboard Shortcuts"
+                onKeyDown={(e) => {
+                  if (e.key === 'Tab') {
+                    e.preventDefault();
+                    helpCloseButtonRef.current?.focus();
+                  }
+                }}
               >
                 <div className="font-semibold text-slate-200 mb-3 text-sm flex justify-between items-center">
                   <span>Keyboard Shortcuts</span>
