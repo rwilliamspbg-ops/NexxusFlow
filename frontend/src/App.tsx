@@ -925,8 +925,16 @@ function App() {
 
               <div>
                 <div className="flex justify-between items-center mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="decoded-claims-container" className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</label>
+                  <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+                    <label htmlFor="decoded-claims-container" className="block text-sm font-medium text-slate-400 whitespace-nowrap shrink-0">Decoded Payload (Claims)</label>
+                    {activePayload && (
+                      <span
+                        className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-900 border border-slate-700 text-slate-400 whitespace-nowrap shrink-0"
+                        title={`This token payload contains ${Object.keys(activePayload).length} claims`}
+                      >
+                        {Object.keys(activePayload).length} {Object.keys(activePayload).length === 1 ? 'claim' : 'claims'}
+                      </span>
+                    )}
                     {(() => {
                       const expInfo = getTokenExpirationInfo(token);
                       if (!expInfo) return null;
@@ -1022,7 +1030,20 @@ function App() {
                   const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
                   const nbfStr = typeof payload.nbf === 'number' ? formatTime(payload.nbf) : null;
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
-                  if (!iatStr && !nbfStr && !expStr) return null;
+                  let lifetimeStr: string | null = null;
+                  if (typeof payload.iat === 'number' && typeof payload.exp === 'number' && payload.exp > payload.iat) {
+                    const durationSec = payload.exp - payload.iat;
+                    if (durationSec < 60) {
+                      lifetimeStr = `${durationSec}s`;
+                    } else if (durationSec < 3600) {
+                      const m = Math.round(durationSec / 60);
+                      lifetimeStr = `${m}m`;
+                    } else {
+                      const h = Math.round(durationSec / 3600);
+                      lifetimeStr = `${h}h`;
+                    }
+                  }
+                  if (!iatStr && !nbfStr && !expStr && !lifetimeStr) return null;
 
                   return (
                     <div
@@ -1045,6 +1066,12 @@ function App() {
                         <span className="flex items-center gap-1 text-slate-400" title={`Expires At (exp): ${new Date(payload.exp * 1000).toISOString()}`}>
                           <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
                           <span>Expires: <strong className="text-slate-300 font-medium">{expStr}</strong></span>
+                        </span>
+                      )}
+                      {lifetimeStr && (
+                        <span className="flex items-center gap-1 text-slate-400" title={`Total token validity duration: ${payload.exp - payload.iat} seconds`}>
+                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                          <span>Lifetime: <strong className="text-slate-300 font-medium">{lifetimeStr}</strong></span>
                         </span>
                       )}
                     </div>
