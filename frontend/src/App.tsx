@@ -1034,10 +1034,13 @@ function App() {
                     const remMins = mins % 60;
                     return remMins > 0 ? `${hours}h ${remMins}m` : `${hours}h`;
                   };
+                  const expSec = typeof payload.exp === 'number' ? payload.exp : 0;
+                  const iatSec = typeof payload.iat === 'number' ? payload.iat : 0;
+                  const diffSec = expSec - iatSec;
                   const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
                   const nbfStr = typeof payload.nbf === 'number' ? formatTime(payload.nbf) : null;
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
-                  const lifetimeStr = typeof payload.iat === 'number' && typeof payload.exp === 'number' ? formatDuration(payload.iat, payload.exp) : null;
+                  const lifetimeStr = typeof payload.iat === 'number' && typeof payload.exp === 'number' && diffSec > 0 ? formatDuration(payload.iat, payload.exp) : null;
                   if (!iatStr && !nbfStr && !expStr) return null;
 
                   return (
@@ -1064,7 +1067,7 @@ function App() {
                         </span>
                       )}
                       {lifetimeStr && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Total Token Lifetime: ${lifetimeStr} (${payload.exp - payload.iat} seconds)`}>
+                        <span className="flex items-center gap-1 text-slate-400" title={`Total Token Lifetime: ${lifetimeStr} (${diffSec} seconds)`}>
                           <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
                           <span>Lifetime: <strong className="text-emerald-400 font-medium">{lifetimeStr}</strong></span>
                         </span>
