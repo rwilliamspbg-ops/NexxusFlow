@@ -927,6 +927,11 @@ function App() {
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="flex items-center gap-2">
                     <label htmlFor="decoded-claims-container" className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</label>
+                    {activePayload && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-slate-900 border-slate-700 text-slate-400 whitespace-nowrap shrink-0" title={`Token payload contains ${Object.keys(activePayload).length} claims`}>
+                        {Object.keys(activePayload).length} claims
+                      </span>
+                    )}
                     {(() => {
                       const expInfo = getTokenExpirationInfo(token);
                       if (!expInfo) return null;
@@ -1022,6 +1027,20 @@ function App() {
                   const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
                   const nbfStr = typeof payload.nbf === 'number' ? formatTime(payload.nbf) : null;
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
+                  let lifetimeStr: string | null = null;
+                  if (typeof payload.exp === 'number' && typeof payload.iat === 'number') {
+                    const diff = payload.exp - payload.iat;
+                    if (diff > 0) {
+                      const mins = Math.floor(diff / 60);
+                      if (mins < 1) lifetimeStr = `${diff}s`;
+                      else if (mins < 60) lifetimeStr = `${mins}m`;
+                      else {
+                        const hrs = Math.floor(mins / 60);
+                        const rMins = mins % 60;
+                        lifetimeStr = rMins > 0 ? `${hrs}h ${rMins}m` : `${hrs}h`;
+                      }
+                    }
+                  }
                   if (!iatStr && !nbfStr && !expStr) return null;
 
                   return (
@@ -1045,6 +1064,11 @@ function App() {
                         <span className="flex items-center gap-1 text-slate-400" title={`Expires At (exp): ${new Date(payload.exp * 1000).toISOString()}`}>
                           <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
                           <span>Expires: <strong className="text-slate-300 font-medium">{expStr}</strong></span>
+                        </span>
+                      )}
+                      {lifetimeStr && (
+                        <span className="flex items-center gap-1 text-slate-400" title={`Total Token Validity Lifetime (exp - iat): ${lifetimeStr}`}>
+                          <span>Lifetime: <strong className="text-emerald-400 font-medium">{lifetimeStr}</strong></span>
                         </span>
                       )}
                     </div>
