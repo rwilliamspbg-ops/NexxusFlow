@@ -15,7 +15,7 @@ RUN go mod download
 # Copy all Go source files from the lab directory root
 COPY *.go ./
 
-RUN CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="-s -w" -o jwt-auth-service .
+RUN CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="-s -w -X 'runtime.buildVersion=go1.25.13'" -o jwt-auth-service .
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
 FROM alpine:3.21
