@@ -1,3 +1,7 @@
+## 2026-09-07 - [Inline Claim Count Badges and Token Validity Lifetime Calculations]
+**Learning:** In educational credential dashboards displaying decoded JWT claims, presenting raw JSON objects and timestamps without summary statistics forces developers to manually count schema properties and calculate epoch time differences (`exp - iat`). Rendering an inline claim count badge (`4 claims`) beside the header label and calculating the total token validity lifetime (`Lifetime: 1h`) directly in the timestamp claims summary bar provides immediate quantitative context and improves developer usability.
+**Action:** Always complement decoded credential JSON payloads with inline property count badges and total validity lifetime duration calculations in summary bars.
+
 ## 2026-09-06 - [Keyboard Focus Trapping in ARIA Modal Dialog Overlays]
 **Learning:** Marking an overlay element with `role="dialog"` and `aria-modal="true"` signals to assistive technologies that user interaction is restricted to the modal overlay. However, if pressing `Tab` while focus is on internal controls allows keyboard focus to escape to background DOM elements, keyboard-only navigators lose context. Catching `Tab` keydown events on `aria-modal="true"` dialog containers (`e.preventDefault()`) and keeping focus trapped on internal interactive controls prevents focus leaks and maintains compliant modal focus behavior.
 **Action:** Always attach an `onKeyDown` handler to `aria-modal="true"` dialog containers to catch `Tab` keypresses and trap keyboard focus on internal modal controls.
