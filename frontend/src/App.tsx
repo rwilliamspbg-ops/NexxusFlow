@@ -927,6 +927,11 @@ function App() {
                 <div className="flex justify-between items-center mb-1.5">
                   <div className="flex items-center gap-2">
                     <label htmlFor="decoded-claims-container" className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</label>
+                    {activePayload && (
+                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 whitespace-nowrap shrink-0">
+                        {Object.keys(activePayload).length} {Object.keys(activePayload).length === 1 ? 'claim' : 'claims'}
+                      </span>
+                    )}
                     {(() => {
                       const expInfo = getTokenExpirationInfo(token);
                       if (!expInfo) return null;
@@ -1024,6 +1029,17 @@ function App() {
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
                   if (!iatStr && !nbfStr && !expStr) return null;
 
+                  const lifetimeSec = typeof payload.exp === 'number' && typeof payload.iat === 'number' ? payload.exp - payload.iat : null;
+                  const formatDuration = (sec: number) => {
+                    if (sec <= 0) return '0s';
+                    if (sec < 60) return `${sec}s`;
+                    const mins = Math.floor(sec / 60);
+                    if (mins < 60) return `${mins}m`;
+                    const hours = Math.floor(mins / 60);
+                    const remMins = mins % 60;
+                    return remMins > 0 ? `${hours}h ${remMins}m` : `${hours}h`;
+                  };
+
                   return (
                     <div
                       className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1 font-mono"
@@ -1045,6 +1061,12 @@ function App() {
                         <span className="flex items-center gap-1 text-slate-400" title={`Expires At (exp): ${new Date(payload.exp * 1000).toISOString()}`}>
                           <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
                           <span>Expires: <strong className="text-slate-300 font-medium">{expStr}</strong></span>
+                        </span>
+                      )}
+                      {lifetimeSec !== null && lifetimeSec > 0 && (
+                        <span className="flex items-center gap-1 text-slate-400" title={`Token total lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}>
+                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                          <span>Lifetime: <strong className="text-slate-300 font-medium">{formatDuration(lifetimeSec)}</strong></span>
                         </span>
                       )}
                     </div>
