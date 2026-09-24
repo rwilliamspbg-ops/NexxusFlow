@@ -70,6 +70,7 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [copiedClaims, setCopiedClaims] = useState(false);
   const [copiedSegment, setCopiedSegment] = useState<string | null>(null);
+  const [copiedTimestamp, setCopiedTimestamp] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<string | null>(null);
   const [userId, setUserId] = useState('student_01');
   const [role, setRole] = useState('admin');
@@ -260,6 +261,17 @@ function App() {
       setTimeout(() => setCopiedSegment(null), 2000);
     } catch (e) {
       console.error(`Failed to copy ${name} segment`, e);
+    }
+  };
+
+  const handleCopyTimestamp = async (label: string, isoTimestamp: string) => {
+    try {
+      await navigator.clipboard.writeText(isoTimestamp);
+      setCopiedTimestamp(label);
+      setAnnouncement(`${label} ISO timestamp (${isoTimestamp}) copied to clipboard`);
+      setTimeout(() => setCopiedTimestamp(null), 2000);
+    } catch (e) {
+      console.error(`Failed to copy ${label} ISO timestamp`, e);
     }
   };
 
@@ -1040,34 +1052,48 @@ function App() {
                     return remMins > 0 ? `${hours}h ${remMins}m` : `${hours}h`;
                   };
 
+                  const timestamps = [
+                    payload.iat ? { label: 'Issued', claim: 'iat', timeStr: iatStr, iso: new Date(payload.iat * 1000).toISOString() } : null,
+                    payload.nbf ? { label: 'Valid From', claim: 'nbf', timeStr: nbfStr, iso: new Date(payload.nbf * 1000).toISOString() } : null,
+                    payload.exp ? { label: 'Expires', claim: 'exp', timeStr: expStr, iso: new Date(payload.exp * 1000).toISOString() } : null,
+                  ].filter((t): t is NonNullable<typeof t> => Boolean(t && t.timeStr));
+
                   return (
                     <div
-                      className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1 font-mono"
+                      className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-400 mt-2 px-1 font-mono"
                       aria-label="Token timestamp claims summary"
+                      role="list"
                     >
-                      {iatStr && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Issued At (iat): ${new Date(payload.iat * 1000).toISOString()}`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Issued: <strong className="text-slate-300 font-medium">{iatStr}</strong></span>
-                        </span>
-                      )}
-                      {nbfStr && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Not Before (nbf): ${new Date(payload.nbf * 1000).toISOString()}`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Valid From: <strong className="text-slate-300 font-medium">{nbfStr}</strong></span>
-                        </span>
-                      )}
-                      {expStr && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Expires At (exp): ${new Date(payload.exp * 1000).toISOString()}`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Expires: <strong className="text-slate-300 font-medium">{expStr}</strong></span>
-                        </span>
-                      )}
+                      {timestamps.map((t) => {
+                        const isCopied = copiedTimestamp === t.label;
+                        return (
+                          <div key={t.claim} role="listitem">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyTimestamp(t.label, t.iso)}
+                              className="flex items-center gap-1 text-slate-400 hover:text-emerald-400 focus-visible:text-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded-md focus-visible:outline-none px-1 py-0.5 transition-colors cursor-pointer"
+                              title={`Click to copy ${t.label} ISO timestamp (${t.iso})`}
+                              aria-label={isCopied ? `${t.label} ISO timestamp (${t.iso}) copied to clipboard` : `Copy ${t.label} At (${t.claim}): ${t.timeStr} (ISO: ${t.iso})`}
+                            >
+                              {isCopied ? (
+                                <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                              ) : (
+                                <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                              )}
+                              <span>
+                                {t.label}: <strong className={`font-medium ${isCopied ? 'text-emerald-400' : 'text-slate-300'}`}>{isCopied ? 'Copied ISO!' : t.timeStr}</strong>
+                              </span>
+                            </button>
+                          </div>
+                        );
+                      })}
                       {lifetimeSec !== null && lifetimeSec > 0 && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Token total lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Lifetime: <strong className="text-slate-300 font-medium">{formatDuration(lifetimeSec)}</strong></span>
-                        </span>
+                        <div role="listitem">
+                          <span className="flex items-center gap-1 text-slate-400 px-1 py-0.5" title={`Token total lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}>
+                            <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                            <span>Lifetime: <strong className="text-slate-300 font-medium">{formatDuration(lifetimeSec)}</strong></span>
+                          </span>
+                        </div>
                       )}
                     </div>
                   );
