@@ -189,3 +189,7 @@
 ## 2026-08-14 - [Avoid tabIndex={0} on Non-Interactive Status Badges]
 **Learning:** Adding `tabIndex={0}` to static or non-interactive status badges creates extraneous tab stops and keyboard clutter for screen-reader and keyboard-only users. Dynamic status elements with `role="status"` and `aria-live="polite"` are already announced automatically by assistive technologies upon state changes, so they should remain outside the document tab order unless they offer a distinct, executable action.
 **Action:** Keep non-interactive status badges non-focusable (do not add `tabIndex={0}`) and rely on `role="status"`, `aria-live`, or hover tooltips instead.
+
+## 2026-08-15 - [Interactive Micro-Actions for Decoded Token Timestamp Claims]
+**Learning:** Developers inspecting JWT payload claims frequently need to copy specific ISO 8601 timestamps (such as `iat`, `nbf`, or `exp`) to correlate events across log aggregators or test API request windows. Providing interactive, keyboard-navigable (`<button type="button">`) micro-actions for timestamp summary claims with checkmark visual state feedback ("Copied ISO!") and screen reader announcements (`aria-label`, `aria-live`) dramatically lowers developer friction compared to manually copying raw UNIX epoch integers.
+**Action:** Convert static timestamp summaries beneath decoded JWT payload sections into accessible, key-navigable copy buttons that write full ISO strings to clipboard and provide visual/audible state updates.
