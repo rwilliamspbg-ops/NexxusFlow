@@ -1,7 +1,7 @@
 # Dockerfile for JWT Auth Backend Service — NexusFlow Lab
 
 # ── Build stage ───────────────────────────────────────────────────────────────
-FROM golang:1.25-bookworm AS builder
+FROM golang:1.25-alpine AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY *.go ./
 RUN CGO_ENABLED=0 go build -trimpath -buildvcs=false -ldflags="-s -w" -o jwt-auth-service .
 
 # ── Runtime stage ─────────────────────────────────────────────────────────────
-FROM debian:bookworm-slim
+FROM alpine:3.21
 
 LABEL maintainer="NexusFlow Team <team@nexxusflow.dev>"
 LABEL org.opencontainers.image.title="nexusflow-jwt-auth-backend"
@@ -23,13 +23,9 @@ LABEL org.opencontainers.image.description="Hardened JWT auth lab runtime for Ne
 LABEL org.opencontainers.image.source="https://github.com/rwilliamspbg-ops/NexxusFlow"
 LABEL org.opencontainers.image.licenses="AGPL-3.0"
 
-# Install wget and ca-certificates for healthcheck, upgrade for security
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget ca-certificates && \
-    apt-get upgrade -y && \
-    apt-get dist-upgrade -y && \
-    rm -rf /var/lib/apt/lists/* && \
-    groupadd -r app && useradd -r -g app app && \
+# Install wget and ca-certificates for healthcheck
+RUN apk add --no-cache wget ca-certificates tzdata && \
+    addgroup -S app && adduser -S -G app app && \
     mkdir -p /app /tmp && chown -R app:app /app /tmp
 
 WORKDIR /app
