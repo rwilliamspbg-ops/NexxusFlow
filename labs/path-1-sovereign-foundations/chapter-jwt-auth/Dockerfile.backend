@@ -3,6 +3,8 @@
 # ── Build stage ───────────────────────────────────────────────────────────────
 FROM golang:1.25-bookworm AS builder
 
+RUN apt-get update && apt-get dist-upgrade -y
+
 WORKDIR /app
 
 # Download deps first so this layer is cached separately from source changes

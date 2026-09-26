@@ -136,6 +136,7 @@ jobs:
           file: labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend
           load: true
           push: false
+          pull: true
           tags: nexusflow/jwt-auth-backend:ci
 
       - name: Generate image SBOM
