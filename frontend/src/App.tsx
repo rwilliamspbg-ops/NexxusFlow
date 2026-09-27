@@ -267,7 +267,9 @@ function App() {
   const handleCopyTimestamp = async (label: string, unixTs: number) => {
     try {
       const isoStr = new Date(unixTs * 1000).toISOString();
-      await navigator.clipboard.writeText(isoStr);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(isoStr);
+      }
       setCopiedTimestamp(label);
       setAnnouncement(`${label} ISO timestamp (${isoStr}) copied to clipboard`);
       setTimeout(() => setCopiedTimestamp(null), 2000);
@@ -1053,66 +1055,40 @@ function App() {
                     return remMins > 0 ? `${hours}h ${remMins}m` : `${hours}h`;
                   };
 
+                  const tsItems = [
+                    { key: 'Issued At', label: 'Issued', str: iatStr, ts: payload.iat },
+                    { key: 'Valid From', label: 'Valid From', str: nbfStr, ts: payload.nbf },
+                    { key: 'Expires', label: 'Expires', str: expStr, ts: payload.exp },
+                  ].filter((item) => item.str && typeof item.ts === 'number');
+
                   return (
                     <div
                       className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1 font-mono"
                       aria-label="Token timestamp claims summary"
                       role="list"
                     >
-                      {iatStr && (
-                        <div role="listitem">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyTimestamp('Issued At', payload.iat)}
-                            className="flex items-center gap-1 text-slate-400 hover:text-emerald-400 focus-visible:text-emerald-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
-                            title={`Click to copy Issued At ISO timestamp (${new Date(payload.iat * 1000).toISOString()})`}
-                            aria-label={copiedTimestamp === 'Issued At' ? `Issued At ISO timestamp copied to clipboard` : `Issued At timestamp: ${iatStr}. Click to copy ISO 8601 timestamp (${new Date(payload.iat * 1000).toISOString()})`}
-                          >
-                            {copiedTimestamp === 'Issued At' ? (
-                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
-                            ) : (
-                              <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                            )}
-                            <span>Issued: <strong className={copiedTimestamp === 'Issued At' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedTimestamp === 'Issued At' ? 'Copied ISO!' : iatStr}</strong></span>
-                          </button>
-                        </div>
-                      )}
-                      {nbfStr && (
-                        <div role="listitem">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyTimestamp('Valid From', payload.nbf)}
-                            className="flex items-center gap-1 text-slate-400 hover:text-emerald-400 focus-visible:text-emerald-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
-                            title={`Click to copy Valid From ISO timestamp (${new Date(payload.nbf * 1000).toISOString()})`}
-                            aria-label={copiedTimestamp === 'Valid From' ? `Valid From ISO timestamp copied to clipboard` : `Valid From timestamp: ${nbfStr}. Click to copy ISO 8601 timestamp (${new Date(payload.nbf * 1000).toISOString()})`}
-                          >
-                            {copiedTimestamp === 'Valid From' ? (
-                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
-                            ) : (
-                              <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                            )}
-                            <span>Valid From: <strong className={copiedTimestamp === 'Valid From' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedTimestamp === 'Valid From' ? 'Copied ISO!' : nbfStr}</strong></span>
-                          </button>
-                        </div>
-                      )}
-                      {expStr && (
-                        <div role="listitem">
-                          <button
-                            type="button"
-                            onClick={() => handleCopyTimestamp('Expires', payload.exp)}
-                            className="flex items-center gap-1 text-slate-400 hover:text-emerald-400 focus-visible:text-emerald-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
-                            title={`Click to copy Expiration ISO timestamp (${new Date(payload.exp * 1000).toISOString()})`}
-                            aria-label={copiedTimestamp === 'Expires' ? `Expires ISO timestamp copied to clipboard` : `Expiration timestamp: ${expStr}. Click to copy ISO 8601 timestamp (${new Date(payload.exp * 1000).toISOString()})`}
-                          >
-                            {copiedTimestamp === 'Expires' ? (
-                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
-                            ) : (
-                              <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                            )}
-                            <span>Expires: <strong className={copiedTimestamp === 'Expires' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedTimestamp === 'Expires' ? 'Copied ISO!' : expStr}</strong></span>
-                          </button>
-                        </div>
-                      )}
+                      {tsItems.map((item) => {
+                        const isCopied = copiedTimestamp === item.key;
+                        const isoStr = new Date(item.ts! * 1000).toISOString();
+                        return (
+                          <div key={item.key} role="listitem">
+                            <button
+                              type="button"
+                              onClick={() => handleCopyTimestamp(item.key, item.ts!)}
+                              className="flex items-center gap-1 text-slate-400 hover:text-emerald-400 focus-visible:text-emerald-400 transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded-md focus-visible:outline-none px-1 py-0.5"
+                              title={`Click to copy ${item.key} ISO timestamp (${isoStr})`}
+                              aria-label={isCopied ? `${item.key} ISO timestamp copied to clipboard` : `${item.key} timestamp: ${item.str}. Click to copy ISO 8601 timestamp (${isoStr})`}
+                            >
+                              {isCopied ? (
+                                <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                              ) : (
+                                <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                              )}
+                              <span>{item.label}: <strong className={isCopied ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{isCopied ? 'Copied ISO!' : item.str}</strong></span>
+                            </button>
+                          </div>
+                        );
+                      })}
                       {lifetimeSec !== null && lifetimeSec > 0 && (
                         <div role="listitem">
                           <span className="flex items-center gap-1 text-slate-400 px-1 py-0.5" title={`Token total lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}>
