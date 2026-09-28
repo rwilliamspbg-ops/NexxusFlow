@@ -25,8 +25,9 @@ LABEL org.opencontainers.image.licenses="AGPL-3.0"
 
 # Install wget and ca-certificates for healthcheck, upgrade for security
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends wget ca-certificates && \
     apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends wget ca-certificates && \
+    apt-get dist-upgrade -y && \
     rm -rf /var/lib/apt/lists/* && \
     groupadd -r app && useradd -r -g app app && \
     mkdir -p /app /tmp && chown -R app:app /app /tmp
