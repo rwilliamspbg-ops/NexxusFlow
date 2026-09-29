@@ -70,6 +70,7 @@ function App() {
   const [copied, setCopied] = useState(false);
   const [copiedClaims, setCopiedClaims] = useState(false);
   const [copiedSegment, setCopiedSegment] = useState<string | null>(null);
+  const [copiedTimestamp, setCopiedTimestamp] = useState<string | null>(null);
   const [activeSegment, setActiveSegment] = useState<string | null>(null);
   const [userId, setUserId] = useState('student_01');
   const [role, setRole] = useState('admin');
@@ -260,6 +261,18 @@ function App() {
       setTimeout(() => setCopiedSegment(null), 2000);
     } catch (e) {
       console.error(`Failed to copy ${name} segment`, e);
+    }
+  };
+
+  const handleCopyTimestamp = async (label: string, isoString: string) => {
+    if (!token) return;
+    try {
+      await navigator.clipboard.writeText(isoString);
+      setCopiedTimestamp(label);
+      setAnnouncement(`${label} ISO timestamp (${isoString}) copied to clipboard`);
+      setTimeout(() => setCopiedTimestamp(null), 2000);
+    } catch (e) {
+      console.error(`Failed to copy ${label} timestamp`, e);
     }
   };
 
@@ -1044,30 +1057,48 @@ function App() {
                     <div
                       className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1 font-mono"
                       aria-label="Token timestamp claims summary"
+                      role="list"
                     >
-                      {iatStr && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Issued At (iat): ${new Date(payload.iat * 1000).toISOString()}`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Issued: <strong className="text-slate-300 font-medium">{iatStr}</strong></span>
-                        </span>
-                      )}
-                      {nbfStr && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Not Before (nbf): ${new Date(payload.nbf * 1000).toISOString()}`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Valid From: <strong className="text-slate-300 font-medium">{nbfStr}</strong></span>
-                        </span>
-                      )}
-                      {expStr && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Expires At (exp): ${new Date(payload.exp * 1000).toISOString()}`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Expires: <strong className="text-slate-300 font-medium">{expStr}</strong></span>
-                        </span>
-                      )}
+                      {[
+                        { label: 'Issued', name: 'Issued At (iat)', ts: payload.iat, str: iatStr },
+                        { label: 'Valid From', name: 'Not Before (nbf)', ts: payload.nbf, str: nbfStr },
+                        { label: 'Expires', name: 'Expires At (exp)', ts: payload.exp, str: expStr },
+                      ]
+                        .filter((item): item is { label: string; name: string; ts: number; str: string } => typeof item.ts === 'number' && Boolean(item.str))
+                        .map((item) => {
+                          const iso = new Date(item.ts * 1000).toISOString();
+                          const isCopied = copiedTimestamp === item.label;
+                          return (
+                            <div key={item.label} role="listitem">
+                              <button
+                                type="button"
+                                onClick={() => handleCopyTimestamp(item.label, iso)}
+                                className="flex items-center gap-1 text-slate-400 hover:text-emerald-400 focus-visible:text-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded px-1 py-0.5 focus-visible:outline-none transition-colors"
+                                title={`Click to copy ${item.name} ISO timestamp: ${iso}`}
+                                aria-label={isCopied ? `${item.label} ISO timestamp copied` : `Copy ${item.name} ISO timestamp (${iso})`}
+                              >
+                                {isCopied ? (
+                                  <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                                ) : (
+                                  <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                                )}
+                                <span>
+                                  {item.label}:{' '}
+                                  <strong className={`font-medium ${isCopied ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                    {isCopied ? 'Copied ISO!' : item.str}
+                                  </strong>
+                                </span>
+                              </button>
+                            </div>
+                          );
+                        })}
                       {lifetimeSec !== null && lifetimeSec > 0 && (
-                        <span className="flex items-center gap-1 text-slate-400" title={`Token total lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Lifetime: <strong className="text-slate-300 font-medium">{formatDuration(lifetimeSec)}</strong></span>
-                        </span>
+                        <div role="listitem">
+                          <span className="flex items-center gap-1 text-slate-400 px-1 py-0.5" title={`Token total lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}>
+                            <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                            <span>Lifetime: <strong className="text-slate-300 font-medium">{formatDuration(lifetimeSec)}</strong></span>
+                          </span>
+                        </div>
                       )}
                     </div>
                   );
