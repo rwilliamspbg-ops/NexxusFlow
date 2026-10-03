@@ -161,6 +161,7 @@ jobs:
           output: trivy-image-results.sarif
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          trivy-config: trivy.yaml
           trivyignores: .trivyignore
           exit-code: "1" # Fail the build if vulnerabilities are found
 
