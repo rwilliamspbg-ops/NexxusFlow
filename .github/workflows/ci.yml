@@ -134,6 +134,7 @@ jobs:
         with:
           context: labs/path-1-sovereign-foundations/chapter-jwt-auth
           file: labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend
+          pull: true
           load: true
           push: false
           tags: nexusflow/jwt-auth-backend:ci
