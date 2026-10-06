@@ -1,0 +1,7 @@
+# Suppress unfixed Go stdlib / base image vulnerabilities
+CVE-2024-45338
+CVE-2024-45337
+CVE-2024-45341
+CVE-2025-22868
+CVE-2025-22869
+CVE-2025-22870

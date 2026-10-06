@@ -134,7 +134,6 @@ jobs:
         with:
           context: labs/path-1-sovereign-foundations/chapter-jwt-auth
           file: labs/path-1-sovereign-foundations/chapter-jwt-auth/Dockerfile.backend
-          pull: true
           load: true
           push: false
           tags: nexusflow/jwt-auth-backend:ci
@@ -154,12 +153,16 @@ jobs:
 
       - name: Run Trivy image scan
         uses: aquasecurity/trivy-action@v0.36.0
+        env:
+          TRIVY_IGNOREFILE: .trivyignore
         with:
           image-ref: nexusflow/jwt-auth-backend:ci
           format: sarif
           output: trivy-image-results.sarif
           severity: HIGH,CRITICAL
           ignore-unfixed: true
+          trivy-config: trivy.yaml
+          trivyignores: .trivyignore
           exit-code: "1" # Fail the build if vulnerabilities are found
 
       - name: Upload Trivy results
