@@ -71,6 +71,7 @@ function App() {
   const [copiedClaims, setCopiedClaims] = useState(false);
   const [copiedSegment, setCopiedSegment] = useState<string | null>(null);
   const [copiedIso, setCopiedIso] = useState<string | null>(null);
+  const [copiedGrafanaUrl, setCopiedGrafanaUrl] = useState(false);
   const [activeSegment, setActiveSegment] = useState<string | null>(null);
   const [userId, setUserId] = useState('student_01');
   const [role, setRole] = useState('admin');
@@ -272,6 +273,18 @@ function App() {
       setTimeout(() => setCopiedIso(null), 2000);
     } catch (e) {
       console.error(`Failed to copy ${claimName} ISO timestamp`, e);
+    }
+  };
+
+  const handleCopyGrafanaUrl = async () => {
+    const url = 'http://localhost:3000';
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedGrafanaUrl(true);
+      setAnnouncement('Grafana dashboard URL copied to clipboard: ' + url);
+      setTimeout(() => setCopiedGrafanaUrl(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy Grafana URL', e);
     }
   };
 
@@ -1234,17 +1247,38 @@ function App() {
                   <span className="block text-slate-300 font-medium text-sm">Live Observability Portal</span>
                   <span className="block text-slate-500 text-xs mt-1">Visualize real-time authorization requests, rate-limiting tokens, and container health.</span>
                 </div>
-                <a
-                  href="http://localhost:3000"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                  aria-label="Launch live Grafana dashboard in a new tab (opens in a new tab)"
-                  title="Opens Grafana dashboard in a new tab (http://localhost:3000)"
-                >
-                  <span>Launch Live Dashboard</span>
-                  <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                </a>
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                  <a
+                    href="http://localhost:3000"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-4 py-2 rounded-lg border border-slate-700 flex items-center gap-2 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    aria-label="Launch live Grafana dashboard in a new tab (opens in a new tab)"
+                    title="Opens Grafana dashboard in a new tab (http://localhost:3000)"
+                  >
+                    <span>Launch Live Dashboard</span>
+                    <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={handleCopyGrafanaUrl}
+                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-3 py-2 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    aria-label={copiedGrafanaUrl ? "Grafana dashboard URL copied to clipboard" : "Copy Grafana dashboard URL to clipboard"}
+                    title="Copy Grafana URL (http://localhost:3000)"
+                  >
+                    {copiedGrafanaUrl ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+                        <span className="text-emerald-400 font-medium">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                        <span>Copy URL</span>
+                      </>
+                    )}
+                  </button>
+                </div>
              </div>
           </div>
         </section>
