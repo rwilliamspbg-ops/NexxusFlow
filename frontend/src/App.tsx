@@ -1037,10 +1037,10 @@ function App() {
                       : 'border-slate-800 text-amber-300'
                   }`}
                 >
-                  {decodePayload(token) ? JSON.stringify(decodePayload(token), null, 2) : 'Unable to decode JWT payload claims'}
+                  {activePayload ? JSON.stringify(activePayload, null, 2) : 'Unable to decode JWT payload claims'}
                 </div>
                 {(() => {
-                  const payload = decodePayload(token);
+                  const payload = activePayload;
                   if (!payload || (typeof payload.iat !== 'number' && typeof payload.nbf !== 'number' && typeof payload.exp !== 'number')) return null;
                   const formatTime = (ts: number) => {
                     try {
@@ -1130,9 +1130,28 @@ function App() {
                         </div>
                       )}
                       {lifetimeSec !== null && lifetimeSec > 0 && (
-                        <div role="listitem" className="flex items-center gap-1 text-slate-400 px-1 py-0.5" title={`Token total lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}>
-                          <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
-                          <span>Lifetime: <strong className="text-slate-300 font-medium">{formatDuration(lifetimeSec)}</strong></span>
+                        <div role="listitem">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const lifetimeStr = `${formatDuration(lifetimeSec)} (${lifetimeSec}s)`;
+                              handleCopyIso('Lifetime', lifetimeStr);
+                            }}
+                            title={`Click to copy Token Lifetime duration: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`}
+                            aria-label={
+                              copiedIso === 'Lifetime'
+                                ? `Token lifetime duration copied: ${formatDuration(lifetimeSec)} (${lifetimeSec}s)`
+                                : `Copy token lifetime duration (${formatDuration(lifetimeSec)} / ${lifetimeSec}s)`
+                            }
+                            className="flex items-center gap-1 hover:text-emerald-400 focus-visible:text-emerald-400 rounded px-1 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                          >
+                            {copiedIso === 'Lifetime' ? (
+                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <Clock className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                            )}
+                            <span>Lifetime: <strong className={copiedIso === 'Lifetime' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedIso === 'Lifetime' ? 'Copied Lifetime!' : formatDuration(lifetimeSec)}</strong></span>
+                          </button>
                         </div>
                       )}
                     </div>
