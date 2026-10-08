@@ -193,3 +193,7 @@
 ## 2026-08-14 - [Avoid tabIndex={0} on Non-Interactive Status Badges]
 **Learning:** Adding `tabIndex={0}` to static or non-interactive status badges creates extraneous tab stops and keyboard clutter for screen-reader and keyboard-only users. Dynamic status elements with `role="status"` and `aria-live="polite"` are already announced automatically by assistive technologies upon state changes, so they should remain outside the document tab order unless they offer a distinct, executable action.
 **Action:** Keep non-interactive status badges non-focusable (do not add `tabIndex={0}`) and rely on `role="status"`, `aria-live`, or hover tooltips instead.
+
+## 2026-10-08 - [Click-Outside Backdrop Overlay and Focus Restoration for Modal Dialogs]
+**Learning:** When displaying modal dialogs (`aria-modal="true"`) in dense dashboard interfaces, omitting a click-outside backdrop overlay leaves background content visually prominent and mouse clicks on background UI unhandled without dismissing the dialog. Adding a full-viewport `fixed inset-0` backdrop with subtle backdrop blur (`backdrop-blur-[1px]`) and `aria-hidden="true"` visually dims background content, captures outside clicks to dismiss the dialog cleanly, announces closure to screen readers via live regions, and programmatically restores focus back to the trigger control.
+**Action:** Always pair `aria-modal="true"` popover dialogs with a `fixed inset-0` `aria-hidden="true"` backdrop overlay that handles outside click dismissal, screen-reader announcements, and trigger element focus restoration.
