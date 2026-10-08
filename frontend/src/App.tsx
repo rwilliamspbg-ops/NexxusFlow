@@ -489,20 +489,30 @@ function App() {
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+K</kbd>
             </button>
             {showHelp && (
-              <div
-                ref={helpDialogRef}
-                id="keyboard-shortcuts-dialog"
-                className="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 z-50 text-xs text-slate-300"
-                role="dialog"
-                aria-modal="true"
-                aria-label="Keyboard Shortcuts"
-                onKeyDown={(e) => {
-                  if (e.key === 'Tab') {
-                    e.preventDefault();
-                    helpCloseButtonRef.current?.focus();
-                  }
-                }}
-              >
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-[1px]"
+                  onClick={() => {
+                    setShowHelp(false);
+                    setAnnouncement("Keyboard shortcuts menu closed");
+                    helpTriggerRef.current?.focus();
+                  }}
+                  aria-hidden="true"
+                />
+                <div
+                  ref={helpDialogRef}
+                  id="keyboard-shortcuts-dialog"
+                  className="absolute right-0 mt-2 w-72 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-4 z-50 text-xs text-slate-300"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="Keyboard Shortcuts"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Tab') {
+                      e.preventDefault();
+                      helpCloseButtonRef.current?.focus();
+                    }
+                  }}
+                >
                 <div className="font-semibold text-slate-200 mb-3 text-sm flex justify-between items-center">
                   <span>Keyboard Shortcuts</span>
                   <button
@@ -532,6 +542,7 @@ function App() {
                   <span>Press <kbd className="bg-slate-950 px-1 py-0.5 border border-slate-700 rounded font-mono text-[9px]">Esc</kbd> to dismiss</span>
                 </div>
               </div>
+              </>
             )}
           </div>
           <div
