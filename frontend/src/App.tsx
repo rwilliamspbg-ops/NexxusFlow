@@ -965,8 +965,8 @@ function App() {
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap justify-between items-center gap-2 mb-1.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     <label htmlFor="decoded-claims-container" className="block text-sm font-medium text-slate-400">Decoded Payload (Claims)</label>
                     {activePayload && (
                       <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 whitespace-nowrap shrink-0">
@@ -977,6 +977,7 @@ function App() {
                       const expInfo = getTokenExpirationInfo(token);
                       if (!expInfo) return null;
                       const isBadgeExpiredOrRevoked = expInfo.isExpired || isRevoked;
+                    const isReissueEligible = expInfo.isExpired || expInfo.isNearExpiry || isRevoked;
                       return (
                         <div className="flex items-center gap-1.5">
                           <span
@@ -991,7 +992,7 @@ function App() {
                                 ? `Warning: JWT token expires in less than 1 minute (${expInfo.label})`
                                 : `Remaining token validity: ${expInfo.label}`
                             }
-                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all ${
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all whitespace-nowrap shrink-0 ${
                               isBadgeExpiredOrRevoked
                                 ? 'bg-rose-500/10 border-rose-500/30 text-rose-400'
                                 : expInfo.isNearExpiry
@@ -999,20 +1000,36 @@ function App() {
                                 : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                             }`}
                           >
-                            <Clock className="w-3 h-3" aria-hidden="true" />
+                          <Clock className="w-3 h-3 shrink-0" aria-hidden="true" />
                             <span>{isRevoked ? `${expInfo.label} (Revoked)` : expInfo.isNearExpiry ? `${expInfo.label} (Expiring Soon)` : expInfo.label}</span>
                           </span>
-                          {(expInfo.isExpired || isRevoked) && (
+                        {isReissueEligible && (
                             <button
                               type="button"
                               onClick={handleAuth}
                               disabled={isIssuing || isRevoking || isUserEmpty}
-                              title={isRevoked ? "Token revoked. Click to reissue a fresh replacement token." : "Token expired. Click to reissue a fresh token."}
-                              aria-label={isRevoked ? "Token revoked. Reissue fresh token" : "Token expired. Reissue fresh token"}
-                              className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-rose-500/20 hover:bg-rose-500/30 border-rose-500/40 hover:border-rose-500/60 text-rose-300 flex items-center gap-1 transition-all focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-400 focus-visible:outline-none cursor-pointer"
+                            title={
+                              isRevoked
+                                ? "Token revoked. Click to reissue a fresh replacement token."
+                                : expInfo.isExpired
+                                ? "Token expired. Click to reissue a fresh token."
+                                : "Token expiring soon. Click to renew with a fresh token."
+                            }
+                            aria-label={
+                              isRevoked
+                                ? "Token revoked. Reissue fresh token"
+                                : expInfo.isExpired
+                                ? "Token expired. Reissue fresh token"
+                                : "Token expiring soon. Renew fresh token"
+                            }
+                            className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex items-center gap-1 transition-all whitespace-nowrap shrink-0 focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:outline-none cursor-pointer ${
+                              isBadgeExpiredOrRevoked
+                                ? 'bg-rose-500/20 hover:bg-rose-500/30 border-rose-500/40 hover:border-rose-500/60 text-rose-300 focus-visible:ring-rose-400'
+                                : 'bg-amber-500/20 hover:bg-amber-500/30 border-amber-500/40 hover:border-amber-500/60 text-amber-300 focus-visible:ring-amber-400'
+                            }`}
                             >
                               <RefreshCw className={`w-3 h-3 ${isIssuing ? 'animate-spin' : ''}`} aria-hidden="true" />
-                              <span>Reissue</span>
+                            <span>{expInfo.isNearExpiry && !expInfo.isExpired && !isRevoked ? 'Renew' : 'Reissue'}</span>
                             </button>
                           )}
                         </div>
