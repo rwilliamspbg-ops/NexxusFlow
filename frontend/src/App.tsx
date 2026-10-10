@@ -300,6 +300,7 @@ function App() {
     token,
     isIssuing,
     isRevoking,
+    isRevoked,
     isRefreshingMetrics,
     showToken,
     setShowToken,
@@ -318,6 +319,7 @@ function App() {
     token,
     isIssuing,
     isRevoking,
+    isRevoked,
     isRefreshingMetrics,
     showToken,
     setShowToken,
@@ -339,6 +341,7 @@ function App() {
         token,
         isIssuing,
         isRevoking,
+        isRevoked,
         isRefreshingMetrics,
         showToken,
         setShowToken,
@@ -378,6 +381,8 @@ function App() {
             setAnnouncement("Cannot revoke token while an action is in progress");
           } else if (!token) {
             setAnnouncement("Cannot revoke token: No active token available");
+          } else if (isRevoked) {
+            setAnnouncement("Cannot revoke token: Active token is already revoked");
           } else {
             handleRevoke();
           }
@@ -813,13 +818,13 @@ function App() {
               <button
                 type="button"
                 onClick={handleRevoke}
-                disabled={!token || isIssuing || isRevoking}
-                title={!token ? "No active token to revoke" : isIssuing || isRevoking ? "Action in progress" : "Revoke Token (Alt + R)"}
+                disabled={!token || isIssuing || isRevoking || isRevoked}
+                title={!token ? "No active token to revoke" : isRevoked ? "Token is already revoked" : isIssuing || isRevoking ? "Action in progress" : "Revoke Token (Alt + R)"}
                 aria-keyshortcuts="Alt+R"
                 className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
               >
                 <Trash2 className={`w-4 h-4 ${isRevoking ? 'animate-pulse' : ''}`} aria-hidden="true" />
-                <span>{isRevoking ? 'Revoking...' : 'Revoke'}</span>
+                <span>{isRevoking ? 'Revoking...' : isRevoked ? 'Revoked' : 'Revoke'}</span>
                 <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-300 bg-slate-900/40 border border-slate-500/30 rounded" aria-hidden="true">Alt+R</kbd>
               </button>
             </div>
