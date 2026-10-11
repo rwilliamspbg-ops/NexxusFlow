@@ -231,6 +231,7 @@ function App() {
       setTimeout(() => setCopied(false), 2000);
     } catch (e) {
       console.error('Failed to copy token to clipboard', e);
+      setAnnouncement('Failed to copy token to clipboard. Clipboard permission denied or unavailable.');
     }
   };
 
@@ -248,6 +249,7 @@ function App() {
       setTimeout(() => setCopiedClaims(false), 2000);
     } catch (e) {
       console.error('Failed to copy claims to clipboard', e);
+      setAnnouncement('Failed to copy claims to clipboard. Clipboard permission denied or unavailable.');
     }
   };
 
@@ -262,6 +264,7 @@ function App() {
       setTimeout(() => setCopiedSegment(null), 2000);
     } catch (e) {
       console.error(`Failed to copy ${name} segment`, e);
+      setAnnouncement(`Failed to copy ${name} segment to clipboard. Clipboard permission denied or unavailable.`);
     }
   };
 
@@ -273,6 +276,7 @@ function App() {
       setTimeout(() => setCopiedIso(null), 2000);
     } catch (e) {
       console.error(`Failed to copy ${claimName} ISO timestamp`, e);
+      setAnnouncement(`Failed to copy ${claimName} ISO timestamp to clipboard. Clipboard permission denied or unavailable.`);
     }
   };
 
@@ -285,6 +289,7 @@ function App() {
       setTimeout(() => setCopiedGrafanaUrl(false), 2000);
     } catch (e) {
       console.error('Failed to copy Grafana URL', e);
+      setAnnouncement('Failed to copy Grafana URL to clipboard. Clipboard permission denied or unavailable.');
     }
   };
 
