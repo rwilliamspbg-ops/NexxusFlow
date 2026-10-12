@@ -68,6 +68,7 @@ function App() {
   const [showToken, setShowToken] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedBearer, setCopiedBearer] = useState(false);
   const [copiedClaims, setCopiedClaims] = useState(false);
   const [copiedSegment, setCopiedSegment] = useState<string | null>(null);
   const [copiedIso, setCopiedIso] = useState<string | null>(null);
@@ -232,6 +233,19 @@ function App() {
     } catch (e) {
       console.error('Failed to copy token to clipboard', e);
       setAnnouncement('Failed to copy token to clipboard. Clipboard permission denied or unavailable.');
+    }
+  };
+
+  const handleCopyBearer = async () => {
+    if (!token) return;
+    try {
+      await navigator.clipboard.writeText(`Bearer ${token}`);
+      setCopiedBearer(true);
+      setAnnouncement('Authorization Bearer header copied to clipboard');
+      setTimeout(() => setCopiedBearer(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy Bearer header to clipboard', e);
+      setAnnouncement('Failed to copy Authorization Bearer header to clipboard. Clipboard permission denied or unavailable.');
     }
   };
 
@@ -853,7 +867,7 @@ function App() {
                       </span>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -887,7 +901,7 @@ function App() {
                       aria-keyshortcuts="Alt+C"
                       className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
                       aria-label={copied ? "Token copied to clipboard" : "Copy token to clipboard (Alt + C)"}
-                      title="Copy token to clipboard (Alt + C)"
+                      title="Copy raw token string to clipboard (Alt + C)"
                     >
                       {copied ? (
                         <>
@@ -899,6 +913,25 @@ function App() {
                           <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Copy</span>
                           <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+C</kbd>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyBearer}
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      aria-label={copiedBearer ? "Authorization Bearer header copied to clipboard" : "Copy Authorization Bearer header string to clipboard"}
+                      title="Copy Authorization: Bearer <token> header to clipboard"
+                    >
+                      {copiedBearer ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+                          <span className="text-emerald-400 font-medium">Copied Bearer!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>Copy Bearer</span>
                         </>
                       )}
                     </button>
