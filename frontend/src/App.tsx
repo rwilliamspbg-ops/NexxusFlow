@@ -1100,6 +1100,7 @@ function App() {
                   id="decoded-claims-container"
                   tabIndex={0}
                   aria-label={isRevoked ? "Revoked decoded payload claims list" : "Decoded payload claims list"}
+                  title={isRevoked ? "Revoked decoded JSON Web Token payload claims" : "Decoded JSON Web Token payload claims"}
                   className={`bg-slate-950 p-4 rounded-lg border font-mono text-xs overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all duration-300 ${
                     copiedClaims
                       ? 'border-amber-500 bg-amber-500/5 text-amber-200 shadow-md shadow-amber-500/5 scale-[1.01]'
@@ -1430,8 +1431,13 @@ function MetricCard({ title, value, color, description }: { title: string, value
       <div className={`text-2xl font-bold transition-transform duration-300 ${color} ${highlight ? 'scale-105 origin-left' : ''}`}>
         {value}
       </div>
-      {description && showInfo && (
-        <p id={cardId} className="text-[11px] text-slate-400 mt-2 pt-2 border-t border-slate-800/80 leading-relaxed font-normal normal-case">
+      {description && (
+        <p
+          id={cardId}
+          className={`text-[11px] text-slate-400 mt-2 pt-2 border-t border-slate-800/80 leading-relaxed font-normal normal-case transition-all duration-200 ${
+            showInfo ? 'block' : 'hidden'
+          }`}
+        >
           {description}
         </p>
       )}
