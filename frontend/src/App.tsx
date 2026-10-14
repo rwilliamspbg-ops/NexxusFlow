@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock, AlertCircle, AlertTriangle, Terminal } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -69,6 +69,7 @@ function App() {
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedBearer, setCopiedBearer] = useState(false);
+  const [copiedCurl, setCopiedCurl] = useState(false);
   const [copiedClaims, setCopiedClaims] = useState(false);
   const [copiedSegment, setCopiedSegment] = useState<string | null>(null);
   const [copiedIso, setCopiedIso] = useState<string | null>(null);
@@ -249,6 +250,20 @@ function App() {
     }
   };
 
+  const handleCopyCurl = async () => {
+    if (!token) return;
+    const curlCmd = `curl -i -H "Authorization: Bearer ${token}" ${API_BASE}/protected`;
+    try {
+      await navigator.clipboard.writeText(curlCmd);
+      setCopiedCurl(true);
+      setAnnouncement('cURL request command copied to clipboard');
+      setTimeout(() => setCopiedCurl(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy cURL command', e);
+      setAnnouncement('Failed to copy cURL command to clipboard. Clipboard permission denied or unavailable.');
+    }
+  };
+
   const handleCopyClaims = async () => {
     if (!token) return;
     try {
@@ -329,6 +344,7 @@ function App() {
     handleAuth,
     handleRevoke,
     handleCopy,
+    handleCopyCurl,
     handleClear,
     handleCopyClaims,
     fetchMetrics,
@@ -348,6 +364,7 @@ function App() {
     handleAuth,
     handleRevoke,
     handleCopy,
+    handleCopyCurl,
     handleClear,
     handleCopyClaims,
     fetchMetrics,
@@ -370,6 +387,7 @@ function App() {
         handleAuth,
         handleRevoke,
         handleCopy,
+        handleCopyCurl,
         handleClear,
         handleCopyClaims,
         fetchMetrics,
@@ -411,6 +429,13 @@ function App() {
             setAnnouncement("Cannot copy token: No active token available");
           } else {
             handleCopy();
+          }
+        } else if (key === 'u') {
+          e.preventDefault();
+          if (!token) {
+            setAnnouncement("Cannot copy cURL command: No active token available");
+          } else {
+            handleCopyCurl();
           }
         } else if (key === 'x') {
           e.preventDefault();
@@ -556,6 +581,7 @@ function App() {
                   <div className="flex justify-between items-center" role="listitem"><span>Issue Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+I</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Revoke Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+R</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Copy Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+C</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Copy cURL Command</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+U</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Clear Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+X</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Copy Decoded Claims</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+P</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Toggle JWT Visibility</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+V</kbd></div>
@@ -892,6 +918,27 @@ function App() {
                           <Eye className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Show</span>
                           <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+V</kbd>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCopyCurl}
+                      aria-keyshortcuts="Alt+U"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      aria-label={copiedCurl ? "cURL request command copied to clipboard" : "Copy cURL request command to clipboard (Alt + U)"}
+                      title={`Copy cURL command (curl -i -H "Authorization: Bearer <token>" ${API_BASE}/protected) (Alt + U)`}
+                    >
+                      {copiedCurl ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+                          <span className="text-emerald-400 font-medium">Copied cURL!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Terminal className="w-3.5 h-3.5" aria-hidden="true" />
+                          <span>Copy cURL</span>
+                          <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+U</kbd>
                         </>
                       )}
                     </button>
