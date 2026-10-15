@@ -344,6 +344,7 @@ function App() {
     handleAuth,
     handleRevoke,
     handleCopy,
+    handleCopyBearer,
     handleCopyCurl,
     handleClear,
     handleCopyClaims,
@@ -364,6 +365,7 @@ function App() {
     handleAuth,
     handleRevoke,
     handleCopy,
+    handleCopyBearer,
     handleCopyCurl,
     handleClear,
     handleCopyClaims,
@@ -387,6 +389,7 @@ function App() {
         handleAuth,
         handleRevoke,
         handleCopy,
+        handleCopyBearer,
         handleCopyCurl,
         handleClear,
         handleCopyClaims,
@@ -429,6 +432,13 @@ function App() {
             setAnnouncement("Cannot copy token: No active token available");
           } else {
             handleCopy();
+          }
+        } else if (key === 'b') {
+          e.preventDefault();
+          if (!token) {
+            setAnnouncement("Cannot copy Bearer header: No active token available");
+          } else {
+            handleCopyBearer();
           }
         } else if (key === 'u') {
           e.preventDefault();
@@ -581,6 +591,7 @@ function App() {
                   <div className="flex justify-between items-center" role="listitem"><span>Issue Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+I</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Revoke Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+R</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Copy Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+C</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Copy Bearer Header</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+B</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Copy cURL Command</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+U</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Clear Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+X</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Copy Decoded Claims</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+P</kbd></div>
@@ -966,9 +977,10 @@ function App() {
                     <button
                       type="button"
                       onClick={handleCopyBearer}
+                      aria-keyshortcuts="Alt+B"
                       className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                      aria-label={copiedBearer ? "Authorization Bearer header copied to clipboard" : "Copy Authorization Bearer header string to clipboard"}
-                      title="Copy Authorization: Bearer <token> header to clipboard"
+                      aria-label={copiedBearer ? "Authorization Bearer header copied to clipboard" : "Copy Authorization Bearer header string to clipboard (Alt + B)"}
+                      title="Copy Authorization: Bearer <token> header to clipboard (Alt + B)"
                     >
                       {copiedBearer ? (
                         <>
@@ -979,6 +991,7 @@ function App() {
                         <>
                           <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Copy Bearer</span>
+                          <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+B</kbd>
                         </>
                       )}
                     </button>
