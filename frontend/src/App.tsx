@@ -844,6 +844,37 @@ function App() {
                 <p id="role-helper" className="text-xs text-slate-500 mt-1 transition-all duration-300">
                   {ROLE_DESCRIPTIONS[role] || 'Assigned permissions role added to the JWT payload claims for role-based access control.'}
                 </p>
+                <div className="flex flex-wrap items-center gap-2 mt-2" role="group" aria-label="Quick role selector">
+                  <span className="text-xs text-slate-500 font-medium">Quick role:</span>
+                  {[
+                    { id: 'admin', label: 'Admin', tier: 'Tier 1' },
+                    { id: 'operator', label: 'Operator', tier: 'Tier 2' },
+                    { id: 'viewer', label: 'Viewer', tier: 'Tier 3' },
+                  ].map((r) => {
+                    const isActive = role === r.id;
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        aria-pressed={isActive}
+                        onClick={() => {
+                          setRole(r.id);
+                          const desc = ROLE_DESCRIPTIONS[r.id] || '';
+                          setAnnouncement(`Role changed to ${r.id} (${r.tier}). ${desc}`);
+                        }}
+                        aria-label={`Set role to ${r.label} (${r.tier})`}
+                        title={`Set role to ${r.label} (${r.tier})`}
+                        className={`text-xs px-2 py-0.5 rounded border transition-colors focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                          isActive
+                            ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-medium'
+                            : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 border-slate-700/60'
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
