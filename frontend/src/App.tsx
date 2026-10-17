@@ -66,6 +66,7 @@ const getTokenExpirationInfo = (jwt: string): { label: string; isExpired: boolea
 function App() {
   const [token, setToken] = useState<string>('');
   const [showToken, setShowToken] = useState(false);
+  const [showCurl, setShowCurl] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [copied, setCopied] = useState(false);
   const [copiedBearer, setCopiedBearer] = useState(false);
@@ -325,6 +326,7 @@ function App() {
   const handleClear = () => {
     if (!token) return;
     setToken('');
+    setShowCurl(false);
     setStatus('Idle');
     setAnnouncement('Token cleared and system status reset to Idle');
     userIdInputRef.current?.focus();
@@ -965,6 +967,22 @@ function App() {
                     </button>
                     <button
                       type="button"
+                      onClick={() => {
+                        const nextShow = !showCurl;
+                        setShowCurl(nextShow);
+                        setAnnouncement(nextShow ? "cURL command preview shown" : "cURL command preview hidden");
+                      }}
+                      aria-expanded={showCurl}
+                      aria-controls="curl-command-preview"
+                      title={showCurl ? "Hide cURL request command preview" : "Preview cURL request command snippet"}
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      aria-label={showCurl ? "Hide cURL request command preview" : "Show cURL request command preview"}
+                    >
+                      <Terminal className="w-3.5 h-3.5" aria-hidden="true" />
+                      <span>{showCurl ? 'Hide cURL' : 'cURL'}</span>
+                    </button>
+                    <button
+                      type="button"
                       onClick={handleCopyCurl}
                       aria-keyshortcuts="Alt+U"
                       className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
@@ -978,7 +996,7 @@ function App() {
                         </>
                       ) : (
                         <>
-                          <Terminal className="w-3.5 h-3.5" aria-hidden="true" />
+                          <Copy className="w-3.5 h-3.5" aria-hidden="true" />
                           <span>Copy cURL</span>
                           <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+U</kbd>
                         </>
@@ -1055,6 +1073,38 @@ function App() {
                 >
                   {renderTokenParts(token)}
                 </div>
+                {showCurl && (
+                  <div
+                    id="curl-command-preview"
+                    tabIndex={0}
+                    role="region"
+                    aria-label="cURL request command preview"
+                    className="mt-2.5 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 flex items-center justify-between gap-3 overflow-x-auto focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                  >
+                    <span className="text-emerald-400 break-words font-mono">
+                      curl -i -H "Authorization: Bearer {showToken ? token : `${token.slice(0, 12)}...${token.slice(-12)}`}" {API_BASE}/protected
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopyCurl}
+                      aria-label={copiedCurl ? "cURL request command copied to clipboard" : "Copy cURL request command to clipboard"}
+                      title="Copy cURL command"
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2 py-1 rounded border border-slate-700 flex items-center gap-1 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                    >
+                      {copiedCurl ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-400" aria-hidden="true" />
+                          <span className="text-emerald-400 font-medium">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3 h-3" aria-hidden="true" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
                 {showToken && (
                   <div
                     className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1"
