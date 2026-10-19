@@ -500,11 +500,32 @@ function App() {
 
     return (
       <>
-        <span className={`text-rose-400 font-semibold transition-all duration-300 ${isHeaderActive ? 'bg-rose-500/20 ring-1 ring-rose-400/60 rounded px-1 shadow-sm shadow-rose-500/10' : ''}`} title="Header: Algorithm & Type">{parts[0]}</span>
+        <span
+          onMouseEnter={() => setActiveSegment('Header')}
+          onMouseLeave={() => setActiveSegment(null)}
+          className={`text-rose-400 font-semibold cursor-pointer transition-all duration-300 ${isHeaderActive ? 'bg-rose-500/20 ring-1 ring-rose-400/60 rounded px-1 shadow-sm shadow-rose-500/10' : ''}`}
+          title="Header: Algorithm & Type"
+        >
+          {parts[0]}
+        </span>
         <span className="text-slate-500">.</span>
-        <span className={`text-indigo-400 font-semibold transition-all duration-300 ${isPayloadActive ? 'bg-indigo-500/20 ring-1 ring-indigo-400/60 rounded px-1 shadow-sm shadow-indigo-500/10' : ''}`} title="Payload: Claims & Data">{parts[1]}</span>
+        <span
+          onMouseEnter={() => setActiveSegment('Payload')}
+          onMouseLeave={() => setActiveSegment(null)}
+          className={`text-indigo-400 font-semibold cursor-pointer transition-all duration-300 ${isPayloadActive ? 'bg-indigo-500/20 ring-1 ring-indigo-400/60 rounded px-1 shadow-sm shadow-indigo-500/10' : ''}`}
+          title="Payload: Claims & Data"
+        >
+          {parts[1]}
+        </span>
         <span className="text-slate-500">.</span>
-        <span className={`text-cyan-400 font-semibold transition-all duration-300 ${isSignatureActive ? 'bg-cyan-500/20 ring-1 ring-cyan-400/60 rounded px-1 shadow-sm shadow-cyan-500/10' : ''}`} title="Signature: Security Verification Key">{parts[2]}</span>
+        <span
+          onMouseEnter={() => setActiveSegment('Signature')}
+          onMouseLeave={() => setActiveSegment(null)}
+          className={`text-cyan-400 font-semibold cursor-pointer transition-all duration-300 ${isSignatureActive ? 'bg-cyan-500/20 ring-1 ring-cyan-400/60 rounded px-1 shadow-sm shadow-cyan-500/10' : ''}`}
+          title="Signature: Security Verification Key"
+        >
+          {parts[2]}
+        </span>
       </>
     );
   };
@@ -1112,33 +1133,38 @@ function App() {
                     role="list"
                   >
                     {[
-                      { name: 'Header', color: 'rose', bg: 'bg-rose-400', hoverText: 'hover:text-rose-400 focus-visible:text-rose-400', ring: 'focus-visible:ring-rose-500/50', desc: 'Header: Contains metadata about the token type (JWT) and algorithm.' },
-                      { name: 'Payload', color: 'indigo', bg: 'bg-indigo-400', hoverText: 'hover:text-indigo-400 focus-visible:text-indigo-400', ring: 'focus-visible:ring-indigo-500/50', desc: 'Payload: Contains claims and user data encoded as JSON.' },
-                      { name: 'Signature', color: 'cyan', bg: 'bg-cyan-400', hoverText: 'hover:text-cyan-400 focus-visible:text-cyan-400', ring: 'focus-visible:ring-cyan-500/50', desc: 'Signature: Cryptographically verifies token integrity.' },
-                    ].map((seg, idx) => (
-                      <div key={seg.name} role="listitem">
-                        <button
-                          type="button"
-                          onClick={() => handleCopySegment(idx, seg.name)}
-                          onMouseEnter={() => setActiveSegment(seg.name)}
-                          onMouseLeave={() => setActiveSegment(null)}
-                          onFocus={() => setActiveSegment(seg.name)}
-                          onBlur={() => setActiveSegment(null)}
-                          className={`flex items-center gap-1.5 transition-colors duration-150 focus-visible:ring-2 ${seg.ring} rounded-md focus-visible:outline-none px-1.5 py-0.5 text-slate-400 ${seg.hoverText}`}
-                          title={`Click to copy ${seg.name} segment`}
-                          aria-label={copiedSegment === seg.name ? `${seg.name} segment copied to clipboard` : `Copy ${seg.name} segment (${seg.color}). ${seg.desc}`}
-                        >
-                          {copiedSegment === seg.name ? (
-                            <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
-                          ) : (
-                            <span className={`w-2 h-2 rounded-full ${seg.bg} block shrink-0`} aria-hidden="true" />
-                          )}
-                          <span className={`font-medium ${copiedSegment === seg.name ? 'text-emerald-400' : ''}`}>
-                            {copiedSegment === seg.name ? `Copied ${seg.name}!` : `${seg.color.charAt(0).toUpperCase() + seg.color.slice(1)}: ${seg.name}`}
-                          </span>
-                        </button>
-                      </div>
-                    ))}
+                      { name: 'Header', color: 'rose', bg: 'bg-rose-400', activeText: 'text-rose-400', hoverText: 'hover:text-rose-400 focus-visible:text-rose-400', ring: 'focus-visible:ring-rose-500/50', desc: 'Header: Contains metadata about the token type (JWT) and algorithm.' },
+                      { name: 'Payload', color: 'indigo', bg: 'bg-indigo-400', activeText: 'text-indigo-400', hoverText: 'hover:text-indigo-400 focus-visible:text-indigo-400', ring: 'focus-visible:ring-indigo-500/50', desc: 'Payload: Contains claims and user data encoded as JSON.' },
+                      { name: 'Signature', color: 'cyan', bg: 'bg-cyan-400', activeText: 'text-cyan-400', hoverText: 'hover:text-cyan-400 focus-visible:text-cyan-400', ring: 'focus-visible:ring-cyan-500/50', desc: 'Signature: Cryptographically verifies token integrity.' },
+                    ].map((seg, idx) => {
+                      const isSegActive = activeSegment === seg.name || copiedSegment === seg.name;
+                      return (
+                        <div key={seg.name} role="listitem">
+                          <button
+                            type="button"
+                            onClick={() => handleCopySegment(idx, seg.name)}
+                            onMouseEnter={() => setActiveSegment(seg.name)}
+                            onMouseLeave={() => setActiveSegment(null)}
+                            onFocus={() => setActiveSegment(seg.name)}
+                            onBlur={() => setActiveSegment(null)}
+                            className={`flex items-center gap-1.5 transition-all duration-150 focus-visible:ring-2 ${seg.ring} rounded-md focus-visible:outline-none px-1.5 py-0.5 ${
+                              isSegActive ? `${seg.activeText} bg-slate-800/90 shadow-sm` : `text-slate-400 ${seg.hoverText}`
+                            }`}
+                            title={`Click to copy ${seg.name} segment`}
+                            aria-label={copiedSegment === seg.name ? `${seg.name} segment copied to clipboard` : `Copy ${seg.name} segment (${seg.color}). ${seg.desc}`}
+                          >
+                            {copiedSegment === seg.name ? (
+                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <span className={`w-2 h-2 rounded-full ${seg.bg} block shrink-0`} aria-hidden="true" />
+                            )}
+                            <span className={`font-medium ${copiedSegment === seg.name ? 'text-emerald-400' : ''}`}>
+                              {copiedSegment === seg.name ? `Copied ${seg.name}!` : `${seg.color.charAt(0).toUpperCase() + seg.color.slice(1)}: ${seg.name}`}
+                            </span>
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
