@@ -1094,38 +1094,60 @@ function App() {
                 >
                   {renderTokenParts(token)}
                 </div>
-                {showCurl && (
-                  <div
-                    id="curl-command-preview"
-                    tabIndex={0}
-                    role="region"
-                    aria-label="cURL request command preview"
-                    className="mt-2.5 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono text-xs text-slate-300 flex items-center justify-between gap-3 overflow-x-auto focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
-                  >
-                    <span className="text-emerald-400 break-words font-mono">
-                      curl -i -H "Authorization: Bearer {showToken ? token : `${token.slice(0, 12)}...${token.slice(-12)}`}" {API_BASE}/protected
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleCopyCurl}
-                      aria-label={copiedCurl ? "cURL request command copied to clipboard" : "Copy cURL request command to clipboard"}
-                      title="Copy cURL command"
-                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2 py-1 rounded border border-slate-700 flex items-center gap-1 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                {showCurl && (() => {
+                  const expInfo = getTokenExpirationInfo(token);
+                  const isTokenInvalid = isRevoked || (expInfo?.isExpired ?? false);
+                  return (
+                    <div
+                      id="curl-command-preview"
+                      tabIndex={0}
+                      role="region"
+                      aria-label={`${isTokenInvalid ? "Revoked or expired" : "Active"} cURL request command preview`}
+                      className={`mt-2.5 p-3 rounded-lg border font-mono text-xs transition-all duration-300 flex items-center justify-between gap-3 overflow-x-auto focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                        isTokenInvalid
+                          ? 'border-rose-500/40 bg-rose-500/5 text-rose-300/90'
+                          : 'border-slate-800 bg-slate-950 text-slate-300'
+                      }`}
                     >
-                      {copiedCurl ? (
-                        <>
-                          <Check className="w-3 h-3 text-emerald-400" aria-hidden="true" />
-                          <span className="text-emerald-400 font-medium">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3 h-3" aria-hidden="true" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
+                      <div className="flex items-center gap-2 flex-wrap font-mono">
+                        <span className={isTokenInvalid ? 'text-rose-400 break-words font-mono' : 'text-emerald-400 break-words font-mono'}>
+                          curl -i -H "Authorization: Bearer {showToken ? token : `${token.slice(0, 12)}...${token.slice(-12)}`}" {API_BASE}/protected
+                        </span>
+                        <span
+                          role="status"
+                          aria-live="polite"
+                          title={isTokenInvalid ? "Expected response status: 401 Unauthorized (Token is revoked or expired)" : "Expected response status: 200 OK (Token is active and valid)"}
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0 ${
+                            isTokenInvalid
+                              ? 'bg-rose-500/20 border-rose-500/40 text-rose-300'
+                              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                          }`}
+                        >
+                          {isTokenInvalid ? '401 Unauthorized Expected' : '200 OK Expected'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleCopyCurl}
+                        aria-label={copiedCurl ? "cURL request command copied to clipboard" : "Copy cURL request command to clipboard"}
+                        title="Copy cURL command"
+                        className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2 py-1 rounded border border-slate-700 flex items-center gap-1 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      >
+                        {copiedCurl ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-400" aria-hidden="true" />
+                            <span className="text-emerald-400 font-medium">Copied!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" aria-hidden="true" />
+                            <span>Copy</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })()}
                 {showToken && (
                   <div
                     className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1"
