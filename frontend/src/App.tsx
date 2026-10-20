@@ -302,11 +302,11 @@ function App() {
     try {
       await navigator.clipboard.writeText(isoStr);
       setCopiedIso(claimName);
-      setAnnouncement(`${claimName} ISO timestamp copied to clipboard: ${isoStr}`);
+      setAnnouncement(`${claimName} claim copied to clipboard: ${isoStr}`);
       setTimeout(() => setCopiedIso(null), 2000);
     } catch (e) {
-      console.error(`Failed to copy ${claimName} ISO timestamp`, e);
-      setAnnouncement(`Failed to copy ${claimName} ISO timestamp to clipboard. Clipboard permission denied or unavailable.`);
+      console.error(`Failed to copy ${claimName} claim`, e);
+      setAnnouncement(`Failed to copy ${claimName} claim to clipboard. Clipboard permission denied or unavailable.`);
     }
   };
 
@@ -1302,7 +1302,23 @@ function App() {
                 </div>
                 {(() => {
                   const payload = activePayload;
-                  if (!payload || (typeof payload.iat !== 'number' && typeof payload.nbf !== 'number' && typeof payload.exp !== 'number')) return null;
+                  if (
+                    !payload ||
+                    (typeof payload.iat !== 'number' &&
+                      typeof payload.nbf !== 'number' &&
+                      typeof payload.exp !== 'number' &&
+                      typeof payload.iss !== 'string' &&
+                      !payload.aud)
+                  )
+                    return null;
+
+                  const issStr = typeof payload.iss === 'string' ? payload.iss : null;
+                  const audStr = Array.isArray(payload.aud)
+                    ? payload.aud.join(', ')
+                    : typeof payload.aud === 'string'
+                    ? payload.aud
+                    : null;
+
                   const formatTime = (ts: number) => {
                     try {
                       return new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -1313,7 +1329,7 @@ function App() {
                   const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
                   const nbfStr = typeof payload.nbf === 'number' ? formatTime(payload.nbf) : null;
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
-                  if (!iatStr && !nbfStr && !expStr) return null;
+                  if (!issStr && !audStr && !iatStr && !nbfStr && !expStr) return null;
 
                   const lifetimeSec = typeof payload.exp === 'number' && typeof payload.iat === 'number' ? payload.exp - payload.iat : null;
                   const formatDuration = (sec: number) => {
@@ -1333,9 +1349,45 @@ function App() {
                   return (
                     <div
                       className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1 font-mono"
-                      aria-label="Token timestamp claims summary"
+                      aria-label="Token registered claims summary"
                       role="list"
                     >
+                      {issStr && (
+                        <div role="listitem">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyIso('Issuer', issStr)}
+                            title={`Click to copy Issuer (iss) claim: ${issStr}`}
+                            aria-label={copiedIso === 'Issuer' ? `Issuer claim copied: ${issStr}` : `Copy Issuer claim (${issStr})`}
+                            className="flex items-center gap-1 hover:text-emerald-400 focus-visible:text-emerald-400 rounded px-1 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                          >
+                            {copiedIso === 'Issuer' ? (
+                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <Shield className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                            )}
+                            <span>Issuer: <strong className={copiedIso === 'Issuer' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedIso === 'Issuer' ? 'Copied Issuer!' : issStr}</strong></span>
+                          </button>
+                        </div>
+                      )}
+                      {audStr && (
+                        <div role="listitem">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyIso('Audience', audStr)}
+                            title={`Click to copy Audience (aud) claim: ${audStr}`}
+                            aria-label={copiedIso === 'Audience' ? `Audience claim copied: ${audStr}` : `Copy Audience claim (${audStr})`}
+                            className="flex items-center gap-1 hover:text-emerald-400 focus-visible:text-emerald-400 rounded px-1 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                          >
+                            {copiedIso === 'Audience' ? (
+                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <Shield className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                            )}
+                            <span>Audience: <strong className={copiedIso === 'Audience' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedIso === 'Audience' ? 'Copied Audience!' : audStr}</strong></span>
+                          </button>
+                        </div>
+                      )}
                       {iatStr && iatIso && (
                         <div role="listitem">
                           <button
