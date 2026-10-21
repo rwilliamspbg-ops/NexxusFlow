@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock, AlertCircle, AlertTriangle, Terminal } from 'lucide-react';
+import { Shield, User, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock, AlertCircle, AlertTriangle, Terminal } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -1308,10 +1308,12 @@ function App() {
                       typeof payload.nbf !== 'number' &&
                       typeof payload.exp !== 'number' &&
                       typeof payload.iss !== 'string' &&
+                      typeof payload.sub !== 'string' &&
                       !payload.aud)
                   )
                     return null;
 
+                  const subStr = typeof payload.sub === 'string' ? payload.sub : null;
                   const issStr = typeof payload.iss === 'string' ? payload.iss : null;
                   const audStr = Array.isArray(payload.aud)
                     ? payload.aud.join(', ')
@@ -1329,7 +1331,7 @@ function App() {
                   const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
                   const nbfStr = typeof payload.nbf === 'number' ? formatTime(payload.nbf) : null;
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
-                  if (!issStr && !audStr && !iatStr && !nbfStr && !expStr) return null;
+                  if (!subStr && !issStr && !audStr && !iatStr && !nbfStr && !expStr) return null;
 
                   const lifetimeSec = typeof payload.exp === 'number' && typeof payload.iat === 'number' ? payload.exp - payload.iat : null;
                   const formatDuration = (sec: number) => {
@@ -1352,6 +1354,24 @@ function App() {
                       aria-label="Token registered claims summary"
                       role="list"
                     >
+                      {subStr && (
+                        <div role="listitem">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyIso('Subject', subStr)}
+                            title={`Click to copy Subject (sub) claim: ${subStr}`}
+                            aria-label={copiedIso === 'Subject' ? `Subject claim copied: ${subStr}` : `Copy Subject claim (${subStr})`}
+                            className="flex items-center gap-1 hover:text-emerald-400 focus-visible:text-emerald-400 rounded px-1 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                          >
+                            {copiedIso === 'Subject' ? (
+                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <User className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                            )}
+                            <span>Subject: <strong className={copiedIso === 'Subject' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedIso === 'Subject' ? 'Copied Subject!' : subStr}</strong></span>
+                          </button>
+                        </div>
+                      )}
                       {issStr && (
                         <div role="listitem">
                           <button
