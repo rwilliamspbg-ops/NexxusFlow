@@ -1568,24 +1568,28 @@ function App() {
               value={metrics?.auth_success_total || 0}
               color="text-emerald-400"
               description="Total number of successful JWT authentications validated by the API."
+              onAnnounce={setAnnouncement}
             />
             <MetricCard
               title="Auth Failures"
               value={metrics?.auth_failure_total || 0}
               color="text-rose-400"
               description="Total number of failed, invalid, or expired token verification attempts."
+              onAnnounce={setAnnouncement}
             />
             <MetricCard
               title="Rate Limited"
               value={metrics?.rate_limit_rejections_total || 0}
               color="text-amber-400"
               description="Total number of requests blocked by the token bucket rate limiter."
+              onAnnounce={setAnnouncement}
             />
             <MetricCard
               title="Mutations"
               value={metrics?.narrative_mutations_total || 0}
               color="text-blue-400"
               description="Total number of successful state updates (mutations) processed by the lab."
+              onAnnounce={setAnnouncement}
             />
           </div>
 
@@ -1639,9 +1643,22 @@ function App() {
   );
 }
 
-function MetricCard({ title, value, color, description }: { title: string, value: number | string, color: string, description?: string }) {
+function MetricCard({
+  title,
+  value,
+  color,
+  description,
+  onAnnounce,
+}: {
+  title: string;
+  value: number | string;
+  color: string;
+  description?: string;
+  onAnnounce?: (msg: string) => void;
+}) {
   const [highlight, setHighlight] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [copied, setCopied] = useState(false);
   const prevValue = useRef(value);
 
   useEffect(() => {
@@ -1652,6 +1669,22 @@ function MetricCard({ title, value, color, description }: { title: string, value
       return () => clearTimeout(timer);
     }
   }, [value]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(`${title}: ${value}`);
+      setCopied(true);
+      if (onAnnounce) {
+        onAnnounce(`${title} metric copied to clipboard: ${value}`);
+      }
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error(`Failed to copy ${title} metric`, e);
+      if (onAnnounce) {
+        onAnnounce(`Failed to copy ${title} metric to clipboard.`);
+      }
+    }
+  };
 
   let highlightClass = 'border-emerald-500/50 bg-slate-800/80 shadow-lg shadow-emerald-500/5';
   if (color.includes('rose')) {
@@ -1673,21 +1706,36 @@ function MetricCard({ title, value, color, description }: { title: string, value
     >
       <div className="flex items-center justify-between text-xs font-medium text-slate-500 uppercase mb-1">
         <span>{title}</span>
-        {description && (
+        <div className="flex items-center gap-1">
           <button
             type="button"
-            onClick={() => setShowInfo(!showInfo)}
-            aria-expanded={showInfo}
-            aria-controls={cardId}
-            className={`cursor-pointer transition-colors flex items-center focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none ${
-              showInfo ? 'text-emerald-400 bg-slate-800' : 'text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400'
-            }`}
-            title={showInfo ? `Hide ${title} description` : description}
-            aria-label={showInfo ? `Hide ${title} description` : `${title} description: ${description}`}
+            onClick={handleCopy}
+            aria-label={copied ? `${title} metric copied: ${value}` : `Copy ${title} metric value (${value})`}
+            title={copied ? 'Copied to clipboard!' : `Copy ${title}: ${value}`}
+            className="cursor-pointer transition-colors flex items-center text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400 focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none"
           >
-            <Info className="w-3.5 h-3.5" aria-hidden="true" />
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+            )}
           </button>
-        )}
+          {description && (
+            <button
+              type="button"
+              onClick={() => setShowInfo(!showInfo)}
+              aria-expanded={showInfo}
+              aria-controls={cardId}
+              className={`cursor-pointer transition-colors flex items-center focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none ${
+                showInfo ? 'text-emerald-400 bg-slate-800' : 'text-slate-500 hover:text-emerald-400 focus-visible:text-emerald-400'
+              }`}
+              title={showInfo ? `Hide ${title} description` : description}
+              aria-label={showInfo ? `Hide ${title} description` : `${title} description: ${description}`}
+            >
+              <Info className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
       <div className={`text-2xl font-bold transition-transform duration-300 ${color} ${highlight ? 'scale-105 origin-left' : ''}`}>
         {value}
