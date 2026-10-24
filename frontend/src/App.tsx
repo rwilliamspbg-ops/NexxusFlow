@@ -1085,7 +1085,7 @@ function App() {
                   aria-label={`${isRevoked ? "Revoked" : "Active"} JSON Web Token container (${showToken ? "Full raw JWT unmasked" : "Privacy masked signature preview"})`}
                   title={showToken ? "Full raw JSON Web Token string" : "Truncated signature for privacy protection during screen sharing"}
                   className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
-                    copied
+                    copied || copiedBearer
                       ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
                       : isRevoked
                       ? 'border-rose-500/40 bg-rose-500/5 text-rose-300'
@@ -1104,7 +1104,9 @@ function App() {
                       role="region"
                       aria-label={`${isTokenInvalid ? "Revoked or expired" : "Active"} cURL request command preview`}
                       className={`mt-2.5 p-3 rounded-lg border font-mono text-xs transition-all duration-300 flex items-center justify-between gap-3 overflow-x-auto focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
-                        isTokenInvalid
+                        copiedCurl
+                          ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
+                          : isTokenInvalid
                           ? 'border-rose-500/40 bg-rose-500/5 text-rose-300/90'
                           : 'border-slate-800 bg-slate-950 text-slate-300'
                       }`}
@@ -1314,6 +1316,7 @@ function App() {
                     return null;
 
                   const subStr = typeof payload.sub === 'string' ? payload.sub : null;
+                  const roleStr = typeof payload.role === 'string' ? payload.role : null;
                   const issStr = typeof payload.iss === 'string' ? payload.iss : null;
                   const audStr = Array.isArray(payload.aud)
                     ? payload.aud.join(', ')
@@ -1331,7 +1334,7 @@ function App() {
                   const iatStr = typeof payload.iat === 'number' ? formatTime(payload.iat) : null;
                   const nbfStr = typeof payload.nbf === 'number' ? formatTime(payload.nbf) : null;
                   const expStr = typeof payload.exp === 'number' ? formatTime(payload.exp) : null;
-                  if (!subStr && !issStr && !audStr && !iatStr && !nbfStr && !expStr) return null;
+                  if (!subStr && !roleStr && !issStr && !audStr && !iatStr && !nbfStr && !expStr) return null;
 
                   const lifetimeSec = typeof payload.exp === 'number' && typeof payload.iat === 'number' ? payload.exp - payload.iat : null;
                   const formatDuration = (sec: number) => {
@@ -1369,6 +1372,24 @@ function App() {
                               <User className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
                             )}
                             <span>Subject: <strong className={copiedIso === 'Subject' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedIso === 'Subject' ? 'Copied Subject!' : subStr}</strong></span>
+                          </button>
+                        </div>
+                      )}
+                      {roleStr && (
+                        <div role="listitem">
+                          <button
+                            type="button"
+                            onClick={() => handleCopyIso('Role', roleStr)}
+                            title={`Click to copy Role (role) claim: ${roleStr}`}
+                            aria-label={copiedIso === 'Role' ? `Role claim copied: ${roleStr}` : `Copy Role claim (${roleStr})`}
+                            className="flex items-center gap-1 hover:text-emerald-400 focus-visible:text-emerald-400 rounded px-1 py-0.5 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                          >
+                            {copiedIso === 'Role' ? (
+                              <Check className="w-3 h-3 text-emerald-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <Shield className="w-3 h-3 text-slate-500 shrink-0" aria-hidden="true" />
+                            )}
+                            <span>Role: <strong className={copiedIso === 'Role' ? 'text-emerald-400 font-medium' : 'text-slate-300 font-medium'}>{copiedIso === 'Role' ? 'Copied Role!' : roleStr}</strong></span>
                           </button>
                         </div>
                       )}
