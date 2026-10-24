@@ -561,7 +561,11 @@ function App() {
                 setShowHelp(nextHelp);
                 setAnnouncement(nextHelp ? "Keyboard shortcuts menu opened" : "Keyboard shortcuts menu closed");
               }}
-              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
+              className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                showHelp
+                  ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-medium'
+                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border-slate-700'
+              }`}
               aria-expanded={showHelp}
               aria-controls="keyboard-shortcuts-dialog"
               aria-haspopup="true"
@@ -969,7 +973,11 @@ function App() {
                       aria-controls="raw-token-container"
                       aria-keyshortcuts="Alt+V"
                       title={showToken ? "Hide raw JWT (Alt + V)" : "Show raw JWT (Alt + V)"}
-                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      className={`text-xs px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                        showToken
+                          ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-medium'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border-slate-700'
+                      }`}
                       aria-label={showToken ? "Hide raw JWT (Alt + V)" : "Show raw JWT (Alt + V)"}
                     >
                       {showToken ? (
@@ -996,7 +1004,11 @@ function App() {
                       aria-expanded={showCurl}
                       aria-controls="curl-command-preview"
                       title={showCurl ? "Hide cURL request command preview" : "Preview cURL request command snippet"}
-                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2.5 py-1 rounded border border-slate-700 flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                      className={`text-xs px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                        showCurl
+                          ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-medium'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border-slate-700'
+                      }`}
                       aria-label={showCurl ? "Hide cURL request command preview" : "Show cURL request command preview"}
                     >
                       <Terminal className="w-3.5 h-3.5" aria-hidden="true" />
