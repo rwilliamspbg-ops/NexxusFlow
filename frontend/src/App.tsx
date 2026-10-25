@@ -21,6 +21,24 @@ const decodePayload = (jwt: string): Record<string, any> | null => {
   }
 };
 
+const decodeHeader = (jwt: string): Record<string, any> | null => {
+  try {
+    const parts = jwt.split('.');
+    if (parts.length !== 3) return null;
+    const base64Url = parts[0];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonHeader = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    return JSON.parse(jsonHeader);
+  } catch {
+    return null;
+  }
+};
+
 const ROLE_DESCRIPTIONS: Record<string, string> = {
   admin: 'Full access. Admin claim with permissions to invoke state mutations and bypass standard security restrictions.',
   operator: 'Read-write access. Operator claim allowed to trigger actions but subject to rate limiting.',
@@ -498,13 +516,16 @@ function App() {
     const isPayloadActive = activeSegment === 'Payload' || copiedSegment === 'Payload';
     const isSignatureActive = activeSegment === 'Signature' || copiedSegment === 'Signature';
 
+    const activeHeaderObj = decodeHeader(t);
+    const headerTitleStr = activeHeaderObj ? `Header: ${JSON.stringify(activeHeaderObj)}` : 'Header: Algorithm & Type';
+
     return (
       <>
         <span
           onMouseEnter={() => setActiveSegment('Header')}
           onMouseLeave={() => setActiveSegment(null)}
           className={`text-rose-400 font-semibold cursor-pointer transition-all duration-300 ${isHeaderActive ? 'bg-rose-500/20 ring-1 ring-rose-400/60 rounded px-1 shadow-sm shadow-rose-500/10' : ''}`}
-          title="Header: Algorithm & Type"
+          title={headerTitleStr}
         >
           {parts[0]}
         </span>
@@ -952,11 +973,25 @@ function App() {
                     <label htmlFor="raw-token-container" className="block text-sm font-medium text-slate-400">
                       {isRevoked ? 'Revoked JWT' : 'Active JWT'}
                     </label>
+                    {(() => {
+                      const activeHeaderObj = token ? decodeHeader(token) : null;
+                      return activeHeaderObj?.alg ? (
+                        <span
+                          role="status"
+                          aria-live="polite"
+                          title={`Signing Algorithm: ${activeHeaderObj.alg}${activeHeaderObj.typ ? ` (${activeHeaderObj.typ})` : ''}`}
+                          aria-label={`Signing Algorithm ${activeHeaderObj.alg}`}
+                          className="text-[10px] font-mono font-semibold tracking-wider px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400 shrink-0"
+                        >
+                          {activeHeaderObj.alg}
+                        </span>
+                      ) : null;
+                    })()}
                     {isRevoked && (
                       <span
                         role="status"
                         aria-live="polite"
-                        className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400"
+                        className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400 shrink-0"
                       >
                         Revoked
                       </span>
@@ -1162,17 +1197,20 @@ function App() {
                     </div>
                   );
                 })()}
-                {showToken && (
-                  <div
-                    className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1"
-                    aria-label="JWT segment color guide"
-                    role="list"
-                  >
-                    {[
-                      { name: 'Header', color: 'rose', bg: 'bg-rose-400', activeText: 'text-rose-400', hoverText: 'hover:text-rose-400 focus-visible:text-rose-400', ring: 'focus-visible:ring-rose-500/50', desc: 'Header: Contains metadata about the token type (JWT) and algorithm.' },
-                      { name: 'Payload', color: 'indigo', bg: 'bg-indigo-400', activeText: 'text-indigo-400', hoverText: 'hover:text-indigo-400 focus-visible:text-indigo-400', ring: 'focus-visible:ring-indigo-500/50', desc: 'Payload: Contains claims and user data encoded as JSON.' },
-                      { name: 'Signature', color: 'cyan', bg: 'bg-cyan-400', activeText: 'text-cyan-400', hoverText: 'hover:text-cyan-400 focus-visible:text-cyan-400', ring: 'focus-visible:ring-cyan-500/50', desc: 'Signature: Cryptographically verifies token integrity.' },
-                    ].map((seg, idx) => {
+                {showToken && (() => {
+                  const activeHeaderObj = token ? decodeHeader(token) : null;
+                  const headerJsonStr = activeHeaderObj ? JSON.stringify(activeHeaderObj) : null;
+                  return (
+                    <div
+                      className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400 mt-2 px-1"
+                      aria-label="JWT segment color guide"
+                      role="list"
+                    >
+                      {[
+                        { name: 'Header', color: 'rose', bg: 'bg-rose-400', activeText: 'text-rose-400', hoverText: 'hover:text-rose-400 focus-visible:text-rose-400', ring: 'focus-visible:ring-rose-500/50', desc: headerJsonStr ? `Header (${headerJsonStr}): Contains metadata about the token type and signing algorithm.` : 'Header: Contains metadata about the token type (JWT) and algorithm.' },
+                        { name: 'Payload', color: 'indigo', bg: 'bg-indigo-400', activeText: 'text-indigo-400', hoverText: 'hover:text-indigo-400 focus-visible:text-indigo-400', ring: 'focus-visible:ring-indigo-500/50', desc: 'Payload: Contains claims and user data encoded as JSON.' },
+                        { name: 'Signature', color: 'cyan', bg: 'bg-cyan-400', activeText: 'text-cyan-400', hoverText: 'hover:text-cyan-400 focus-visible:text-cyan-400', ring: 'focus-visible:ring-cyan-500/50', desc: 'Signature: Cryptographically verifies token integrity.' },
+                      ].map((seg, idx) => {
                       const isSegActive = activeSegment === seg.name || copiedSegment === seg.name;
                       return (
                         <div key={seg.name} role="listitem">
@@ -1200,9 +1238,10 @@ function App() {
                           </button>
                         </div>
                       );
-                    })}
-                  </div>
-                )}
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div>
