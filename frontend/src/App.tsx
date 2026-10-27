@@ -971,36 +971,48 @@ function App() {
           {token ? (
             <div className="mt-6 space-y-4">
               <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <div className="flex items-center gap-2">
-                    <label htmlFor="raw-token-container" className="block text-sm font-medium text-slate-400">
-                      {isRevoked ? 'Revoked JWT' : 'Active JWT'}
-                    </label>
-                    {(() => {
-                      const activeHeaderObj = token ? decodeHeader(token) : null;
-                      return activeHeaderObj?.alg ? (
-                        <span
-                          role="status"
-                          aria-live="polite"
-                          title={`Signing Algorithm: ${activeHeaderObj.alg}${activeHeaderObj.typ ? ` (${activeHeaderObj.typ})` : ''}`}
-                          aria-label={`Signing Algorithm ${activeHeaderObj.alg}`}
-                          className="text-[10px] font-mono font-semibold tracking-wider px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400 shrink-0"
-                        >
-                          {activeHeaderObj.alg}
-                        </span>
-                      ) : null;
-                    })()}
-                    {isRevoked && (
-                      <span
-                        role="status"
-                        aria-live="polite"
-                        className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400 shrink-0"
-                      >
-                        Revoked
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
+                {(() => {
+                  const expInfo = getTokenExpirationInfo(token);
+                  const isExpired = expInfo?.isExpired ?? false;
+                  return (
+                    <div className="flex justify-between items-center mb-1.5">
+                      <div className="flex items-center gap-2">
+                        <label htmlFor="raw-token-container" className="block text-sm font-medium text-slate-400">
+                          {isRevoked ? 'Revoked JWT' : isExpired ? 'Expired JWT' : 'Active JWT'}
+                        </label>
+                        {(() => {
+                          const activeHeaderObj = token ? decodeHeader(token) : null;
+                          return activeHeaderObj?.alg ? (
+                            <span
+                              role="status"
+                              aria-live="polite"
+                              title={`Signing Algorithm: ${activeHeaderObj.alg}${activeHeaderObj.typ ? ` (${activeHeaderObj.typ})` : ''}`}
+                              aria-label={`Signing Algorithm ${activeHeaderObj.alg}`}
+                              className="text-[10px] font-mono font-semibold tracking-wider px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400 shrink-0"
+                            >
+                              {activeHeaderObj.alg}
+                            </span>
+                          ) : null;
+                        })()}
+                        {isRevoked ? (
+                          <span
+                            role="status"
+                            aria-live="polite"
+                            className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400 shrink-0"
+                          >
+                            Revoked
+                          </span>
+                        ) : isExpired ? (
+                          <span
+                            role="status"
+                            aria-live="polite"
+                            className="text-[10px] font-bold tracking-wider uppercase px-2 py-0.5 rounded-full border bg-rose-500/10 border-rose-500/30 text-rose-400 shrink-0"
+                          >
+                            Expired
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
                       onClick={() => {
@@ -1127,23 +1139,33 @@ function App() {
                       <span>Clear</span>
                       <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+X</kbd>
                     </button>
-                  </div>
-                </div>
-                <div
-                  id="raw-token-container"
-                  tabIndex={0}
-                  aria-label={`${isRevoked ? "Revoked" : "Active"} JSON Web Token container (${showToken ? "Full raw JWT unmasked" : "Privacy masked signature preview"})`}
-                  title={showToken ? "Full raw JSON Web Token string" : "Truncated signature for privacy protection during screen sharing"}
-                  className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
-                    copied || copiedBearer
-                      ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
-                      : isRevoked
-                      ? 'border-rose-500/40 bg-rose-500/5 text-rose-300'
-                      : 'border-slate-800 text-emerald-300'
-                  }`}
-                >
-                  {renderTokenParts(token)}
-                </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                {(() => {
+                  const expInfo = getTokenExpirationInfo(token);
+                  const isExpired = expInfo?.isExpired ?? false;
+                  const isTokenInvalid = isRevoked || isExpired;
+                  const tokenStateLabel = isRevoked ? "Revoked" : isExpired ? "Expired" : "Active";
+                  return (
+                    <div
+                      id="raw-token-container"
+                      tabIndex={0}
+                      aria-label={`${tokenStateLabel} JSON Web Token container (${showToken ? "Full raw JWT unmasked" : "Privacy masked signature preview"})`}
+                      title={showToken ? "Full raw JSON Web Token string" : "Truncated signature for privacy protection during screen sharing"}
+                      className={`bg-slate-950 p-4 rounded-lg border break-all font-mono text-xs transition-all duration-300 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                        copied || copiedBearer
+                          ? 'border-emerald-500 bg-emerald-500/5 text-emerald-200 shadow-md shadow-emerald-500/5 scale-[1.01]'
+                          : isTokenInvalid
+                          ? 'border-rose-500/40 bg-rose-500/5 text-rose-300'
+                          : 'border-slate-800 text-emerald-300'
+                      }`}
+                    >
+                      {renderTokenParts(token)}
+                    </div>
+                  );
+                })()}
                 {showCurl && (() => {
                   const expInfo = getTokenExpirationInfo(token);
                   const isTokenInvalid = isRevoked || (expInfo?.isExpired ?? false);
@@ -1341,21 +1363,30 @@ function App() {
                     )}
                   </button>
                 </div>
-                <div
-                  id="decoded-claims-container"
-                  tabIndex={0}
-                  aria-label={isRevoked ? "Revoked decoded payload claims list" : "Decoded payload claims list"}
-                  title={isRevoked ? "Revoked decoded JSON Web Token payload claims" : "Decoded JSON Web Token payload claims"}
-                  className={`bg-slate-950 p-4 rounded-lg border font-mono text-xs overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all duration-300 ${
-                    copiedClaims
-                      ? 'border-amber-500 bg-amber-500/5 text-amber-200 shadow-md shadow-amber-500/5 scale-[1.01]'
-                      : isRevoked
-                      ? 'border-rose-500/40 bg-rose-500/5 text-rose-300/80'
-                      : 'border-slate-800 text-amber-300'
-                  }`}
-                >
-                  {activePayload ? JSON.stringify(activePayload, null, 2) : 'Unable to decode JWT payload claims'}
-                </div>
+                {(() => {
+                  const expInfo = getTokenExpirationInfo(token);
+                  const isExpired = expInfo?.isExpired ?? false;
+                  const isTokenInvalid = isRevoked || isExpired;
+                  const claimsLabel = isRevoked ? "Revoked decoded payload claims list" : isExpired ? "Expired decoded payload claims list" : "Decoded payload claims list";
+                  const claimsTitle = isRevoked ? "Revoked decoded JSON Web Token payload claims" : isExpired ? "Expired decoded JSON Web Token payload claims" : "Decoded JSON Web Token payload claims";
+                  return (
+                    <div
+                      id="decoded-claims-container"
+                      tabIndex={0}
+                      aria-label={claimsLabel}
+                      title={claimsTitle}
+                      className={`bg-slate-950 p-4 rounded-lg border font-mono text-xs overflow-x-auto whitespace-pre-wrap break-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none transition-all duration-300 ${
+                        copiedClaims
+                          ? 'border-amber-500 bg-amber-500/5 text-amber-200 shadow-md shadow-amber-500/5 scale-[1.01]'
+                          : isTokenInvalid
+                          ? 'border-rose-500/40 bg-rose-500/5 text-rose-300/80'
+                          : 'border-slate-800 text-amber-300'
+                      }`}
+                    >
+                      {activePayload ? JSON.stringify(activePayload, null, 2) : 'Unable to decode JWT payload claims'}
+                    </div>
+                  );
+                })()}
                 {(() => {
                   const payload = activePayload;
                   if (
