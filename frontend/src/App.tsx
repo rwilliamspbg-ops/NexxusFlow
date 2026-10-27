@@ -590,7 +590,9 @@ function App() {
               aria-expanded={showHelp}
               aria-controls="keyboard-shortcuts-dialog"
               aria-haspopup="true"
-              aria-label="Toggle keyboard shortcuts help"
+              aria-keyshortcuts="Alt+K"
+              aria-label={showHelp ? "Close keyboard shortcuts help (Alt + K)" : "Open keyboard shortcuts help (Alt + K)"}
+              title={showHelp ? "Close keyboard shortcuts menu (Alt + K)" : "Open keyboard shortcuts menu (Alt + K)"}
             >
               <span>Shortcuts</span>
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+K</kbd>
@@ -631,6 +633,7 @@ function App() {
                     }}
                     className="text-slate-400 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:text-emerald-400 text-lg leading-none p-1 rounded"
                     aria-label="Close shortcuts help"
+                    title="Close shortcuts help (Esc)"
                   >
                     &times;
                   </button>
