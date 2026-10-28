@@ -358,6 +358,8 @@ function App() {
     isRefreshingMetrics,
     showToken,
     setShowToken,
+    showCurl,
+    setShowCurl,
     showHelp,
     setShowHelp,
     setAnnouncement,
@@ -379,6 +381,8 @@ function App() {
     isRefreshingMetrics,
     showToken,
     setShowToken,
+    showCurl,
+    setShowCurl,
     showHelp,
     setShowHelp,
     setAnnouncement,
@@ -403,6 +407,8 @@ function App() {
         isRefreshingMetrics,
         showToken,
         setShowToken,
+        showCurl,
+        setShowCurl,
         showHelp,
         setShowHelp,
         setAnnouncement,
@@ -492,6 +498,15 @@ function App() {
             const nextShow = !showToken;
             setShowToken(nextShow);
             setAnnouncement(nextShow ? "Raw JWT shown" : "Raw JWT hidden");
+          }
+        } else if (key === 't') {
+          e.preventDefault();
+          if (!token) {
+            setAnnouncement("Cannot toggle cURL preview: No active token available");
+          } else {
+            const nextShow = !showCurl;
+            setShowCurl(nextShow);
+            setAnnouncement(nextShow ? "cURL command preview shown" : "cURL command preview hidden");
           }
         } else if (key === 'k') {
           e.preventDefault();
@@ -647,6 +662,7 @@ function App() {
                   <div className="flex justify-between items-center" role="listitem"><span>Clear Token</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+X</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Copy Decoded Claims</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+P</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Toggle JWT Visibility</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+V</kbd></div>
+                  <div className="flex justify-between items-center" role="listitem"><span>Toggle cURL Preview</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+T</kbd></div>
                   <div className="flex justify-between items-center" role="listitem"><span>Refresh Metrics</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+M</kbd></div>
                   <div className="flex justify-between items-center text-slate-400" role="listitem"><span>Toggle This Help</span><kbd className="bg-slate-950 px-1.5 py-0.5 border border-slate-700 rounded font-mono text-[10px]">Alt+K</kbd></div>
                 </div>
@@ -1053,16 +1069,18 @@ function App() {
                       }}
                       aria-expanded={showCurl}
                       aria-controls="curl-command-preview"
-                      title={showCurl ? "Hide cURL request command preview" : "Preview cURL request command snippet"}
+                      aria-keyshortcuts="Alt+T"
+                      title={showCurl ? "Hide cURL request command preview (Alt + T)" : "Preview cURL request command snippet (Alt + T)"}
                       className={`text-xs px-2.5 py-1 rounded border flex items-center gap-1.5 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                         showCurl
                           ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 font-medium'
                           : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border-slate-700'
                       }`}
-                      aria-label={showCurl ? "Hide cURL request command preview" : "Show cURL request command preview"}
+                      aria-label={showCurl ? "Hide cURL request command preview (Alt + T)" : "Show cURL request command preview (Alt + T)"}
                     >
                       <Terminal className="w-3.5 h-3.5" aria-hidden="true" />
                       <span>{showCurl ? 'Hide cURL' : 'cURL'}</span>
+                      <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+T</kbd>
                     </button>
                     <button
                       type="button"
