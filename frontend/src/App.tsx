@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Shield, User, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock, AlertCircle, AlertTriangle, Terminal } from 'lucide-react';
+import { Shield, User, Activity, RefreshCw, Trash2, Key, Copy, Check, ExternalLink, Eye, EyeOff, X, Info, Clock, AlertCircle, AlertTriangle, Terminal, Keyboard } from 'lucide-react';
 
 const API_BASE = 'http://localhost:8080';
 
@@ -631,6 +631,7 @@ function App() {
               aria-label={showHelp ? "Close keyboard shortcuts help (Alt + K)" : "Open keyboard shortcuts help (Alt + K)"}
               title={showHelp ? "Close keyboard shortcuts menu (Alt + K)" : "Open keyboard shortcuts menu (Alt + K)"}
             >
+              <Keyboard className="w-3.5 h-3.5" aria-hidden="true" />
               <span>Shortcuts</span>
               <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[9px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+K</kbd>
             </button>
@@ -660,7 +661,10 @@ function App() {
                   }}
                 >
                 <div className="font-semibold text-slate-200 mb-3 text-sm flex justify-between items-center">
-                  <span>Keyboard Shortcuts</span>
+                  <span className="flex items-center gap-1.5">
+                    <Keyboard className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+                    Keyboard Shortcuts
+                  </span>
                   <button
                     ref={helpCloseButtonRef}
                     onClick={() => {
@@ -668,11 +672,11 @@ function App() {
                       setAnnouncement("Keyboard shortcuts menu closed");
                       helpTriggerRef.current?.focus();
                     }}
-                    className="text-slate-400 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:text-emerald-400 text-lg leading-none p-1 rounded"
+                    className="text-slate-400 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:text-emerald-400 p-1 rounded transition-colors"
                     aria-label="Close shortcuts help"
                     title="Close shortcuts help (Esc)"
                   >
-                    &times;
+                    <X className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
                 <div className="space-y-2.5" role="list" aria-label="Keyboard shortcuts list">
