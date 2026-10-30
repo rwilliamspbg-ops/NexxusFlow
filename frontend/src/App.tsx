@@ -103,12 +103,14 @@ function App() {
   const [announcement, setAnnouncement] = useState('');
   const [isOffline, setIsOffline] = useState(false);
   const [isRefreshingMetrics, setIsRefreshingMetrics] = useState(false);
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
   const timeoutRef = useRef<any>(null);
   const userIdInputRef = useRef<HTMLInputElement | null>(null);
   const helpDialogRef = useRef<HTMLDivElement | null>(null);
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null);
   const helpCloseButtonRef = useRef<HTMLButtonElement | null>(null);
+  const hasAnnouncedNearExpiryRef = useRef(false);
+  const hasAnnouncedExpiredRef = useRef(false);
 
   const isRevoked = status.toLowerCase().includes('revoked');
   const trimmedUserId = userId.trim();
@@ -163,10 +165,30 @@ function App() {
   }, []);
 
   useEffect(() => {
+    hasAnnouncedNearExpiryRef.current = false;
+    hasAnnouncedExpiredRef.current = false;
     if (!token) return;
     const ticker = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(ticker);
   }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    const expInfo = getTokenExpirationInfo(token);
+    if (!expInfo) return;
+
+    if (expInfo.isExpired) {
+      if (!hasAnnouncedExpiredRef.current) {
+        hasAnnouncedExpiredRef.current = true;
+        setAnnouncement('Active JWT token has expired');
+      }
+    } else if (expInfo.isNearExpiry) {
+      if (!hasAnnouncedNearExpiryRef.current) {
+        hasAnnouncedNearExpiryRef.current = true;
+        setAnnouncement('Warning: Active JWT token is expiring soon (less than 1 minute remaining)');
+      }
+    }
+  }, [token, tick]);
 
   useEffect(() => {
     if (showHelp) {
@@ -1304,8 +1326,6 @@ function App() {
                       return (
                         <div className="flex items-center gap-1.5">
                           <span
-                            role="status"
-                            aria-live="polite"
                             title={
                               isRevoked
                                 ? `This JWT token has been revoked (${expInfo.label})`
