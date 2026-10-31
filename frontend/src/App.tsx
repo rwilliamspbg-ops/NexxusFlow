@@ -1247,9 +1247,10 @@ function App() {
                       <button
                         type="button"
                         onClick={handleCopyCurl}
-                        aria-label={copiedCurl ? "cURL request command copied to clipboard" : "Copy cURL request command to clipboard"}
-                        title="Copy cURL command"
-                        className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2 py-1 rounded border border-slate-700 flex items-center gap-1 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                        aria-keyshortcuts="Alt+U"
+                        aria-label={copiedCurl ? "cURL request command copied to clipboard" : "Copy cURL request command to clipboard (Alt + U)"}
+                        title="Copy cURL command (Alt + U)"
+                        className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 px-2 py-1 rounded border border-slate-700 flex items-center gap-1 shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:ring-emerald-500 focus-visible:outline-none"
                       >
                         {copiedCurl ? (
                           <>
@@ -1260,6 +1261,7 @@ function App() {
                           <>
                             <Copy className="w-3 h-3" aria-hidden="true" />
                             <span>Copy</span>
+                            <kbd className="hidden sm:inline-block px-1 py-0.5 text-[8px] font-sans font-medium text-slate-400 bg-slate-900 border border-slate-700 rounded" aria-hidden="true">Alt+U</kbd>
                           </>
                         )}
                       </button>
