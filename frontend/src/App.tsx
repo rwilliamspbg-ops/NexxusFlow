@@ -984,6 +984,15 @@ function App() {
                     ? "Action in progress"
                     : "Issue Token (Alt + I)"
                 }
+                aria-label={
+                  isUserEmpty
+                    ? "Cannot issue token: User ID is empty"
+                    : isIssuing
+                    ? "Issuing token..."
+                    : isFormModified
+                    ? "Reissue token with modified inputs (Alt + I)"
+                    : "Issue token (Alt + I)"
+                }
                 aria-keyshortcuts="Alt+I"
                 className={`flex-1 text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none ${
                   isFormModified && !isIssuing && !isRevoking
@@ -1000,6 +1009,15 @@ function App() {
                 onClick={handleRevoke}
                 disabled={!token || isIssuing || isRevoking || isRevoked}
                 title={!token ? "No active token to revoke" : isRevoked ? "Token is already revoked" : isIssuing || isRevoking ? "Action in progress" : "Revoke Token (Alt + R)"}
+                aria-label={
+                  !token
+                    ? "Cannot revoke token: No active token available"
+                    : isRevoking
+                    ? "Revoking active token..."
+                    : isRevoked
+                    ? "Active token is already revoked"
+                    : "Revoke active token (Alt + R)"
+                }
                 aria-keyshortcuts="Alt+R"
                 className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:bg-slate-800 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-2 rounded-lg transition-colors flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-rose-500 focus-visible:outline-none"
               >
@@ -1873,7 +1891,13 @@ function MetricCard({
           {description && (
             <button
               type="button"
-              onClick={() => setShowInfo(!showInfo)}
+              onClick={() => {
+                const nextShow = !showInfo;
+                setShowInfo(nextShow);
+                if (onAnnounce) {
+                  onAnnounce(nextShow ? `${title} description shown: ${description}` : `${title} description hidden`);
+                }
+              }}
               aria-expanded={showInfo}
               aria-controls={cardId}
               className={`cursor-pointer transition-colors flex items-center focus-visible:ring-2 focus-visible:ring-emerald-500 rounded p-0.5 focus-visible:outline-none ${
