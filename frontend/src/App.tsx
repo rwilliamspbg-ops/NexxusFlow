@@ -106,6 +106,7 @@ function App() {
   const [tick, setTick] = useState(0);
   const timeoutRef = useRef<any>(null);
   const userIdInputRef = useRef<HTMLInputElement | null>(null);
+  const roleSelectRef = useRef<HTMLSelectElement | null>(null);
   const helpDialogRef = useRef<HTMLDivElement | null>(null);
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null);
   const helpCloseButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -920,6 +921,7 @@ function App() {
                 </div>
                 <select
                   id="role"
+                  ref={roleSelectRef}
                   value={role}
                   onChange={(e) => {
                     const nextRole = e.target.value;
@@ -954,6 +956,7 @@ function App() {
                           setRole(r.id);
                           const desc = ROLE_DESCRIPTIONS[r.id] || '';
                           setAnnouncement(`Role changed to ${r.id} (${r.tier}). ${desc}`);
+                          roleSelectRef.current?.focus();
                         }}
                         aria-label={`Set role to ${r.label} (${r.tier})`}
                         title={`Set role to ${r.label} (${r.tier})`}
@@ -963,7 +966,7 @@ function App() {
                             : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-emerald-400 border-slate-700/60'
                         }`}
                       >
-                        {r.label}
+                        {r.label} <span className="text-[10px] opacity-75 font-normal">({r.tier})</span>
                       </button>
                     );
                   })}
