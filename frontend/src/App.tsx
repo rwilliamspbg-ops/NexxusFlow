@@ -510,9 +510,13 @@ function App() {
           } else {
             handleCopyClaims();
           }
-        } else if (key === 'm' && !isRefreshingMetrics) {
+        } else if (key === 'm') {
           e.preventDefault();
-          fetchMetrics(true);
+          if (isRefreshingMetrics) {
+            setAnnouncement("Metrics refresh already in progress");
+          } else {
+            fetchMetrics(true);
+          }
         } else if (key === 'v') {
           e.preventDefault();
           if (!token) {
@@ -1722,8 +1726,9 @@ function App() {
                 type="button"
                 onClick={() => fetchMetrics(true)}
                 disabled={isRefreshingMetrics}
-                aria-label="Refresh metrics (Alt + M)"
-                title="Refresh metrics (Alt + M)"
+                aria-busy={isRefreshingMetrics}
+                aria-label={isRefreshingMetrics ? "Refreshing metrics..." : "Refresh metrics (Alt + M)"}
+                title={isRefreshingMetrics ? "Refreshing metrics in progress..." : "Refresh metrics (Alt + M)"}
                 aria-keyshortcuts="Alt+M"
                 className="p-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-700 disabled:cursor-not-allowed border border-slate-700 transition-colors flex items-center gap-1.5 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-800 focus-visible:ring-emerald-500 focus-visible:outline-none"
               >
